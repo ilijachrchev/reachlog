@@ -5,6 +5,7 @@ using ReachLog.Application.Interfaces;
 using ReachLog.Infrastructure.Persistence;
 using ReachLog.Infrastructure.Services;
 using System.Text;
+using ReachLog.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IOutreachService, OutreachService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
