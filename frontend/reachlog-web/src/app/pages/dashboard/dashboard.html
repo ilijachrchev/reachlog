@@ -1,0 +1,23 @@
+<div class="dashboard">
+  <header>
+    <h1>ReachLog</h1>
+    <button (click)="logout()">Logout</button>
+  </header>
+
+  <main>
+    <p *ngIf="loading">Loading...</p>
+
+    <p *ngIf="!loading && outreaches.length === 0">
+      No outreaches yet.
+    </p>
+
+    <div class="outreach-list" *ngIf="!loading && outreaches.length > 0">
+      <div class="outreach-card" *ngFor="let o of outreaches">
+        <h3>{{ o.companyName }}</h3>
+        <p>{{ o.role }}</p>
+        <p>{{ o.contactName }} — {{ o.contactEmail }}</p>
+        <span class="status">{{ o.status }}</span>
+      </div>
+    </div>
+  </main>
+</div>
