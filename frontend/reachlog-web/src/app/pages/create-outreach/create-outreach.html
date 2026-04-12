@@ -1,0 +1,54 @@
+<div class="form-container">
+  <div class="form-card">
+    <div class="form-header">
+      <h2>New Outreach</h2>
+      <a routerLink="/dashboard">Back</a>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>Company name *</label>
+        <input type="text" formControlName="companyName" placeholder="Google" />
+      </div>
+
+      <div class="field">
+        <label>Contact name</label>
+        <input type="text" formControlName="contactName" placeholder="John Smith" />
+      </div>
+
+      <div class="field">
+        <label>Contact email</label>
+        <input type="email" formControlName="contactEmail" placeholder="john@google.com" />
+      </div>
+
+      <div class="field">
+        <label>Role</label>
+        <input type="text" formControlName="role" placeholder="Junior .NET Developer" />
+      </div>
+
+      <div class="field">
+        <label>Channel</label>
+        <select formControlName="channel">
+          <option value="Email">Email</option>
+          <option value="LinkedIn">LinkedIn</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Message</label>
+        <textarea formControlName="rawMessage" rows="4" placeholder="Paste your message here..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Sent at *</label>
+        <input type="date" formControlName="sentAt" />
+      </div>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Saving...' : 'Save outreach' }}
+      </button>
+    </form>
+  </div>
+</div>
