@@ -1,0 +1,33 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Outreach, CreateOutreachRequest, UpdateStatusRequest } from '../models/outreach.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class OutreachService {
+  private readonly apiUrl = 'http://localhost:5155/api/outreach';
+
+  constructor(private http: HttpClient) {}
+
+  getAll(): Observable<Outreach[]> {
+    return this.http.get<Outreach[]>(this.apiUrl);
+  }
+
+  getById(id: string): Observable<Outreach> {
+    return this.http.get<Outreach>(`${this.apiUrl}/${id}`);
+  }
+
+  create(request: CreateOutreachRequest): Observable<Outreach> {
+    return this.http.post<Outreach>(this.apiUrl, request);
+  }
+
+  updateStatus(id: string, request: UpdateStatusRequest): Observable<Outreach> {
+    return this.http.patch<Outreach>(`${this.apiUrl}/${id}/status`, request);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+}
