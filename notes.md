@@ -45,3 +45,37 @@ Every piece of work = new branch → commit → push → Pull Request → merge 
 - fix: bug fix
 - chore: tooling/config
 - docs: documentation
+
+
+**SSR (Server-Side Rendering)** — rendering the Angular app on the server instead of 
+the browser. Useful for SEO and initial load performance. We don't need it for ReachLog 
+since it's a private dashboard, not a public website.
+
+**SCSS** — a superset of CSS that adds features like variables, nesting, and mixins. 
+Compiles down to regular CSS. We use it instead of plain CSS for cleaner styling.
+
+**Standalone Components** — Angular 17+ feature where components don't need to be 
+declared in a NgModule. Simpler, more modern way to build Angular apps.
+
+**Routing** — Angular's system for navigating between pages without a full page reload. 
+Each URL maps to a component (e.g. /login → LoginComponent, /dashboard → DashboardComponent).
+
+**HttpClient** — Angular's built-in service for making HTTP requests to your API. 
+Replaces the native fetch API with observables and interceptors.
+
+**Observable** — a stream of data over time. Used heavily in Angular instead of Promises. 
+Think of it like a Promise that can emit multiple values and can be cancelled.
+
+**Interceptor** — middleware for Angular's HttpClient. Every HTTP request passes through it. 
+We'll use one to automatically attach the JWT token to every request so you don't have 
+to add it manually each time.
+
+**Service** — an Angular class that holds business logic and data, shared across components. 
+Components should be thin — they display data. Services do the work.
+
+**Component** — the building block of an Angular app. Each component = one piece of UI. 
+It has three parts: a TypeScript class (logic), an HTML template (structure), 
+and SCSS styles (appearance).
+
+**Guard** — protects routes from unauthorized access. If a user isn't logged in and tries 
+to access /dashboard, the guard redirects them to /login automatically.
