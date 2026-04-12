@@ -1,7 +1,8 @@
 <div class="dashboard">
   <header>
     <h1>ReachLog</h1>
-    <button (click)="logout()">Logout</button>
+    <button (click)="logout()" class="logout-btn">Logout</button>
+    <button (click)="goToNew()" class="new-btn">+ New Outreach</button>
   </header>
 
   <main>
@@ -13,7 +14,10 @@
 
     <div class="outreach-list" *ngIf="!loading && outreaches.length > 0">
       <div class="outreach-card" *ngFor="let o of outreaches">
-        <h3>{{ o.companyName }}</h3>
+        <div class="card-header">
+          <h3>{{ o.companyName }}</h3>
+          <button class="delete-btn" (click)="delete(o.id)">Delete</button>
+        </div>
         <p>{{ o.role }}</p>
         <p>{{ o.contactName }} — {{ o.contactEmail }}</p>
         <span class="status">{{ o.status }}</span>

@@ -21,6 +21,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'outreach/new',
+    loadComponent: () => import('./pages/create-outreach/create-outreach').then(m => m.CreateOutreachComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }
