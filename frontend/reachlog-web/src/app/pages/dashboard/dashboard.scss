@@ -6,16 +6,16 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-
-    button {
-      padding: 0.5rem 1rem;
-      background: #dc2626;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
   }
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .outreach-card {
@@ -25,8 +25,26 @@
   margin-bottom: 1rem;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 
-  h3 { margin: 0 0 0.25rem; }
   p { margin: 0.25rem 0; color: #666; font-size: 0.875rem; }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+
+  h3 { margin: 0; }
+}
+
+.delete-btn {
+  padding: 0.25rem 0.5rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
 }
 
 .status {
@@ -37,4 +55,14 @@
   border-radius: 4px;
   font-size: 0.75rem;
   margin-top: 0.5rem;
+}
+
+.new-btn {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
