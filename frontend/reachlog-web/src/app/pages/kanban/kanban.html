@@ -277,6 +277,11 @@
         </div>
       </div>
 
+      <div class="detail-section" *ngIf="selectedOutreach.rawMessage">
+        <h3 class="detail-section-title">Message</h3>
+        <pre class="detail-raw-message">{{ selectedOutreach.rawMessage }}</pre>
+      </div>
+
     </div>
   </div>
 </div>
