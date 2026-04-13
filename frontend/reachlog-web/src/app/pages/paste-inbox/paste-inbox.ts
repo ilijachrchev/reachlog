@@ -20,7 +20,6 @@ export class PasteInboxComponent {
   parsedResult: ParseResult | null = null;
   error: string | null = null;
 
-  // Editable fields bound to the result card
   editCompany = '';
   editContact = '';
   editEmail = '';
@@ -91,4 +90,10 @@ export class PasteInboxComponent {
     this.parsedResult = null;
     this.error = null;
   }
+
+  goToDashboard(): void { this.router.navigate(['/dashboard']); }
+  goToKanban(): void { this.router.navigate(['/kanban']); }
+  goToCv(): void { this.router.navigate(['/cv']); }
+  goToAnalytics(): void { this.router.navigate(['/analytics']); }
+  goToNew(): void { this.router.navigate(['/outreach/new']); }
 }

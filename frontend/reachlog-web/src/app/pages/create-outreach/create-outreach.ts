@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { OutreachService } from '../../core/services/outreach.service'; 
+import { Router } from '@angular/router';
+import { OutreachService } from '../../core/services/outreach.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-create-outreach',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './create-outreach.html',
   styleUrl: './create-outreach.scss'
 })
@@ -42,11 +42,17 @@ export class CreateOutreachComponent {
       ...value,
       sentAt: new Date(value.sentAt).toISOString()
     }).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => this.router.navigate(['/kanban']),
       error: () => {
         this.error = 'Failed to create outreach.';
         this.loading = false;
       }
     });
   }
+
+  goToDashboard(): void { this.router.navigate(['/dashboard']); }
+  goToKanban(): void { this.router.navigate(['/kanban']); }
+  goToInbox(): void { this.router.navigate(['/inbox']); }
+  goToCv(): void { this.router.navigate(['/cv']); }
+  goToAnalytics(): void { this.router.navigate(['/analytics']); }
 }
