@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { OutreachService } from '../../core/services/outreach.service';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-create-outreach',
@@ -19,7 +20,8 @@ export class CreateOutreachComponent {
   constructor(
     private fb: FormBuilder,
     private outreachService: OutreachService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
     this.form = this.fb.group({
       companyName: ['', Validators.required],
@@ -42,9 +44,12 @@ export class CreateOutreachComponent {
       ...value,
       sentAt: new Date(value.sentAt).toISOString()
     }).subscribe({
-      next: () => this.router.navigate(['/kanban']),
+      next: () => {
+        this.toastService.success('Outreach created successfully!');
+        setTimeout(() => this.router.navigate(['/kanban']), 800);
+      },
       error: () => {
-        this.error = 'Failed to create outreach.';
+        this.toastService.error('Failed to create outreach.');
         this.loading = false;
       }
     });

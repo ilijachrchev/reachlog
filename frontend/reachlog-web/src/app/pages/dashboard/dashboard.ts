@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { OutreachService } from '../../core/services/outreach.service';
 import { Outreach } from '../../core/models/outreach.model';
 import { Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,7 +21,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private outreachService: OutreachService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -43,7 +45,9 @@ export class DashboardComponent implements OnInit {
       next: () => {
         this.outreaches = this.outreaches.filter(o => o.id !== id);
         this.confirmDeleteId = null;
-      }
+        this.toastService.success('Outreach deleted.');
+      },
+      error: () => this.toastService.error('Failed to delete. Try again.')
     });
   }
 

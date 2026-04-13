@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CvService, CvInfo } from '../../core/services/cv.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-cv-upload',
@@ -19,7 +20,10 @@ export class CvUploadComponent implements OnInit {
   selectedFile: File | null = null;
   dragOver = false;
 
-  constructor(private cvService: CvService, private router: Router) {}
+  constructor(
+     private cvService: CvService,
+     private router: Router,
+     private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.cvService.get().subscribe({
@@ -69,11 +73,11 @@ export class CvUploadComponent implements OnInit {
       next: (data) => {
         this.cvInfo = data;
         this.uploading = false;
-        this.success = 'CV uploaded successfully.';
+        this.toastService.success('CV uploaded successfully.');
         this.selectedFile = null;
       },
       error: () => {
-        this.error = 'Upload failed. Please try again.';
+        this.toastService.error('Upload failed. Please try again.');
         this.uploading = false;
       }
     });
