@@ -1,0 +1,84 @@
+<div class="create-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToCv()">CV</button>
+      <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn active-page">+ New</button>
+    </nav>
+  </header>
+
+  <main class="create-body">
+    <div class="create-header">
+      <h1 class="create-title">Edit Outreach</h1>
+      <p class="create-sub">Update the details of this outreach record</p>
+    </div>
+
+    <div *ngIf="loadingData" class="loading-state">Loading...</div>
+
+    <div class="form-card" *ngIf="!loadingData">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="fields">
+          <div class="field full">
+            <label>Company name *</label>
+            <input type="text" formControlName="companyName" placeholder="Google" />
+          </div>
+
+          <div class="field">
+            <label>Contact name</label>
+            <input type="text" formControlName="contactName" placeholder="John Smith" />
+          </div>
+
+          <div class="field">
+            <label>Contact email</label>
+            <input type="email" formControlName="contactEmail" placeholder="john@google.com" />
+          </div>
+
+          <div class="field">
+            <label>Role</label>
+            <input type="text" formControlName="role" placeholder="Junior .NET Developer" />
+          </div>
+
+          <div class="field">
+            <label>Channel</label>
+            <select formControlName="channel">
+              <option value="Email">Email</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Date sent *</label>
+            <input type="date" formControlName="sentAt" />
+          </div>
+
+          <div class="field full">
+            <label>Message</label>
+            <textarea formControlName="rawMessage" rows="5" placeholder="Paste your message here..."></textarea>
+          </div>
+
+          <div class="field full">
+            <label>Notes</label>
+            <textarea formControlName="notes" rows="3" placeholder="Internal notes about this outreach..."></textarea>
+          </div>
+        </div>
+
+        <p class="error-msg" *ngIf="error">{{ error }}</p>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
+            {{ loading ? 'Saving...' : 'Save changes' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="goToKanban()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>

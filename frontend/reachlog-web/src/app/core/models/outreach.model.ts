@@ -12,6 +12,7 @@ export interface Outreach {
   matchScore: number | null;
   missingSkills: string[] | null;
   rawMessage: string | null;
+  notes: string | null;
 }
 
 export interface CreateOutreachRequest {
@@ -23,6 +24,17 @@ export interface CreateOutreachRequest {
   rawMessage: string;
   sentAt: string | null;
   notes: string;
+}
+
+export interface UpdateOutreachRequest {
+  companyName: string;
+  contactName: string | null;
+  contactEmail: string | null;
+  role: string | null;
+  channel: string;
+  rawMessage: string | null;
+  notes: string | null;
+  sentAt: string;
 }
 
 export interface UpdateStatusRequest {

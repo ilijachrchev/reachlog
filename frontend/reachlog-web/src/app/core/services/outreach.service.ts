@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Outreach, CreateOutreachRequest, UpdateStatusRequest } from '../models/outreach.model';
+import { Outreach, CreateOutreachRequest, UpdateOutreachRequest, UpdateStatusRequest } from '../models/outreach.model';
 
 export interface ScoreResult {
   matchScore: number;
@@ -26,6 +26,10 @@ export class OutreachService {
 
   create(request: CreateOutreachRequest): Observable<Outreach> {
     return this.http.post<Outreach>(this.apiUrl, request);
+  }
+
+  update(id: string, request: UpdateOutreachRequest): Observable<Outreach> {
+    return this.http.put<Outreach>(`${this.apiUrl}/${id}`, request);
   }
 
   updateStatus(id: string, request: UpdateStatusRequest): Observable<Outreach> {
