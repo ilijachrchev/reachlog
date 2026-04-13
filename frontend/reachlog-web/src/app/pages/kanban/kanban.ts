@@ -25,6 +25,7 @@ export class KanbanComponent implements OnInit {
   columns: Record<string, Outreach[]> = {};
   loading = true;
   connectedLists: string[] = [];
+  scoringIds = new Set<string>();
 
   constructor(
     private outreachService: OutreachService,
@@ -81,6 +82,25 @@ export class KanbanComponent implements OnInit {
         item.status = previousStatus;
       }
     });
+  }
+
+  scoreOutreach(event: MouseEvent, o: Outreach): void {
+    event.stopPropagation();
+    if (this.scoringIds.has(o.id)) return;
+    this.scoringIds.add(o.id);
+
+    this.outreachService.score(o.id).subscribe({
+      next: (result) => {
+        o.cvMatchScore = result.matchScore;
+        o.missingSkills = result.missingSkills;
+        this.scoringIds.delete(o.id);
+      },
+      error: () => this.scoringIds.delete(o.id)
+    });
+  }
+
+  isScoring(id: string): boolean {
+    return this.scoringIds.has(id);
   }
 
   getChannelClass(channel: string): string {

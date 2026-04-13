@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using ReachLog.Application.DTOs.Outreach;
 using ReachLog.Application.Interfaces;
@@ -116,6 +117,10 @@ public class OutreachService : IOutreachService
         Status = outreach.Status,
         IsOpened = outreach.IsOpened,
         SentAt = outreach.SentAt,
-        CreatedAt = outreach.CreatedAt
+        CreatedAt = outreach.CreatedAt,
+        MatchScore = outreach.MatchScore,
+        MissingSkills = string.IsNullOrEmpty(outreach.MissingSkills)
+            ? []
+            : JsonSerializer.Deserialize<List<string>>(outreach.MissingSkills) ?? []
     };
 }
