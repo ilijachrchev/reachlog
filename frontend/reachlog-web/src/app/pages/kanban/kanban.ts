@@ -113,4 +113,5 @@ export class KanbanComponent implements OnInit {
   goToInbox(): void { this.router.navigate(['/inbox']); }
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
+  goToCv(): void { this.router.navigate(['/cv']); }
 }

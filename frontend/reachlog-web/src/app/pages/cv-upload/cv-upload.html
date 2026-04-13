@@ -1,0 +1,117 @@
+<div class="cv-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn active-page">CV</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <main class="cv-body">
+    <div class="cv-header">
+      <h1 class="cv-title">Your CV</h1>
+      <p class="cv-sub">Upload once — used for AI match scoring on every outreach</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-bar-wrap">
+      <div class="loading-bar"></div>
+    </div>
+
+    <div *ngIf="!loading" class="cv-content">
+
+      <!-- Current CV info -->
+      <div class="cv-card" *ngIf="cvInfo">
+        <div class="cv-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
+        </div>
+        <div class="cv-card-info">
+          <span class="cv-filename">{{ cvInfo.fileName }}</span>
+          <div class="cv-meta">
+            <span class="cv-meta-item">Uploaded {{ formatDate(cvInfo.uploadedAt) }}</span>
+            <span class="cv-meta-dot">·</span>
+            <span class="cv-meta-item">{{ formatCount(cvInfo.characterCount) }} characters extracted</span>
+          </div>
+        </div>
+        <span class="cv-active-badge">Active</span>
+      </div>
+
+      <div class="cv-empty-state" *ngIf="!cvInfo">
+        <p>No CV uploaded yet. Upload one below to enable AI match scoring.</p>
+      </div>
+
+      <!-- Upload zone -->
+      <div class="upload-section">
+        <h2 class="upload-title">{{ cvInfo ? 'Replace CV' : 'Upload CV' }}</h2>
+
+        <div
+          class="drop-zone"
+          [class.drag-over]="dragOver"
+          [class.has-file]="selectedFile"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+        >
+          <input
+            #fileInput
+            type="file"
+            accept=".pdf,.docx"
+            (change)="onFileSelected($event)"
+            style="display:none"
+          />
+
+          <div class="drop-zone-content" *ngIf="!selectedFile">
+            <div class="drop-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-label">Drop your CV here or <span class="drop-link">browse</span></p>
+            <p class="drop-hint">PDF or Word (.docx) · Max 5MB</p>
+          </div>
+
+          <div class="drop-zone-content selected" *ngIf="selectedFile">
+            <div class="selected-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <p class="selected-name">{{ selectedFile.name }}</p>
+            <p class="drop-hint">Click to change file</p>
+          </div>
+        </div>
+
+        <div class="upload-feedback">
+          <p class="error-msg" *ngIf="error">{{ error }}</p>
+          <p class="success-msg" *ngIf="success">{{ success }}</p>
+        </div>
+
+        <button
+          class="upload-btn"
+          [disabled]="!selectedFile || uploading"
+          (click)="upload()"
+        >
+          <span *ngIf="!uploading">Upload CV</span>
+          <span *ngIf="uploading" class="uploading-label">
+            <span class="spinner"></span> Uploading...
+          </span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+</div>
