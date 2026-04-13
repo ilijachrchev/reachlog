@@ -766,3 +766,19 @@
   line-height: 1.6;
   white-space: pre-wrap;
 }
+
+.detail-status-select {
+  background: #25252b;
+  border: 1px solid #333338;
+  border-radius: 6px;
+  color: #f0f0f2;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+
+  &:focus { border-color: #5b6cf9; }
+
+  option { background: #18181c; }
+}

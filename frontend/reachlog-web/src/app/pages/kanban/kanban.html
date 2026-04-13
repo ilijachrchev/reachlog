@@ -162,7 +162,13 @@
         </span>
         <span class="detail-meta-item">
           <span class="detail-meta-label">Status</span>
-          <span class="detail-meta-value">{{ selectedOutreach.status }}</span>
+          <select
+            class="detail-status-select"
+            [ngModel]="selectedOutreach.status"
+            (ngModelChange)="changeStatus($event)"
+          >
+            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          </select>
         </span>
         <span class="detail-meta-item">
           <span class="detail-meta-label">Channel</span>
