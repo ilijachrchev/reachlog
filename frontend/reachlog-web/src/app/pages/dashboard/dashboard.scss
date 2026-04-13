@@ -183,3 +183,39 @@
   height: 24px;
   object-fit: contain;
 }
+
+.delete-confirm-label {
+  font-size: 0.72rem;
+  color: #f06565;
+  font-weight: 500;
+}
+
+.delete-confirm-btn {
+  padding: 0.25rem 0.5rem;
+  background: rgba(240,101,101,0.15);
+  color: #f06565;
+  border: 1px solid rgba(240,101,101,0.3);
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
+
+  &:hover { background: rgba(240,101,101,0.25); }
+}
+
+.delete-cancel-btn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  color: #55555f;
+  border: 1px solid #2a2a30;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
+
+  &:hover { color: #f0f0f2; border-color: #55555f; }
+}

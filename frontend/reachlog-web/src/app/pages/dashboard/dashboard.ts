@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 export class DashboardComponent implements OnInit {
   outreaches: Outreach[] = [];
   loading = true;
+  confirmDeleteId: string | null = null;
 
   constructor(
     private outreachService: OutreachService,
@@ -24,17 +25,25 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.outreachService.getAll().subscribe({
-      next: (data) => {
-        this.outreaches = data;
-        this.loading = false;
-      },
+      next: (data) => { this.outreaches = data; this.loading = false; },
       error: () => this.loading = false
     });
   }
 
-  delete(id: string): void {
+  askDelete(id: string): void {
+    this.confirmDeleteId = id;
+  }
+
+  cancelDelete(): void {
+    this.confirmDeleteId = null;
+  }
+
+  confirmDelete(id: string): void {
     this.outreachService.delete(id).subscribe({
-      next: () => this.outreaches = this.outreaches.filter(o => o.id !== id)
+      next: () => {
+        this.outreaches = this.outreaches.filter(o => o.id !== id);
+        this.confirmDeleteId = null;
+      }
     });
   }
 
