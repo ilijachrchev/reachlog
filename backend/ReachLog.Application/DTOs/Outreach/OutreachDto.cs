@@ -12,4 +12,6 @@ public class OutreachDto
     public bool IsOpened { get; set; }
     public DateTime SentAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int? MatchScore { get; set; }
+    public List<string> MissingSkills { get; set; } = [];
 }

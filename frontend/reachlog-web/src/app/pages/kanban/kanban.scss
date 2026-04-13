@@ -372,3 +372,52 @@
   border: 1px dashed #2a2a30;
   border-radius: 8px;
 }
+
+// ── Score Button ─────────────────────────────────────
+.card-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.score-btn {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #333338;
+  background: #28282e;
+  color: #9090a0;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  min-height: 22px;
+
+  &:hover:not(:disabled) {
+    border-color: #5b6cf9;
+    color: #5b6cf9;
+    background: rgba(91,108,249,0.08);
+  }
+
+  &.scoring {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.score-spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(144,144,160,0.3);
+  border-top-color: #9090a0;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
