@@ -21,6 +21,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'kanban',
+    loadComponent: () => import('./pages/kanban/kanban').then(m => m.KanbanComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'outreach/new',
     loadComponent: () => import('./pages/create-outreach/create-outreach').then(m => m.CreateOutreachComponent),
     canActivate: [authGuard]
