@@ -51,6 +51,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  editOutreach(o: Outreach): void { this.router.navigate([`/outreach/${o.id}/edit`]); }
+
   goToNew(): void { this.router.navigate(['/outreach/new']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
   goToKanban(): void { this.router.navigate(['/kanban']); }

@@ -160,6 +160,24 @@
   color: #8b8b99;
 }
 
+.edit-btn {
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  color: #55555f;
+  border: 1px solid #2a2a2e;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
+
+  &:hover {
+    background: rgba(91,108,249,0.08);
+    border-color: #5b6cf9;
+    color: #5b6cf9;
+  }
+}
+
 .delete-btn {
   padding: 0.25rem 0.6rem;
   background: transparent;
