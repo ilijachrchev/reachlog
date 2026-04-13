@@ -346,3 +346,9 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.topbar-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
