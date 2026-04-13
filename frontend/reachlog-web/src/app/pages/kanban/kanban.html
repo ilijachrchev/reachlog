@@ -1,0 +1,86 @@
+<div class="kanban-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn active" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn active-page">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <div class="kanban-body">
+    <div class="kanban-header">
+      <h1 class="kanban-title">Pipeline</h1>
+      <p class="kanban-sub">Drag cards to update status</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-bar"></div>
+    </div>
+
+    <div *ngIf="!loading" class="columns-track">
+      <div
+        *ngFor="let status of statuses"
+        class="column"
+        [class.column-rejected]="status === 'Rejected'"
+        [class.column-offer]="status === 'Offer'"
+      >
+        <div class="column-header">
+          <div class="column-label-row">
+            <span class="column-status-dot" [class]="'dot-' + status.toLowerCase()"></span>
+            <span class="column-label">{{ status }}</span>
+          </div>
+          <span class="column-count">{{ columns[status].length }}</span>
+        </div>
+
+        <div
+          class="card-list"
+          [id]="getListId(status)"
+          cdkDropList
+          [cdkDropListData]="columns[status]"
+          [cdkDropListConnectedTo]="connectedLists"
+          (cdkDropListDropped)="drop($event, status)"
+        >
+          <div
+            *ngFor="let o of columns[status]"
+            class="outreach-card"
+            cdkDrag
+            [cdkDragData]="o"
+          >
+            <div class="card-channel-strip" [class]="getChannelClass(o.channel)"></div>
+
+            <div class="card-body">
+              <div class="card-top">
+                <span class="card-company">{{ o.companyName }}</span>
+                <span class="score-badge" [class]="getScoreBadgeClass(o.cvMatchScore)">
+                  {{ getScoreLabel(o.cvMatchScore) }}
+                </span>
+              </div>
+
+              <p class="card-role">{{ o.role || 'No role specified' }}</p>
+
+              <div class="card-meta">
+                <span class="card-channel-pill" [class]="getChannelClass(o.channel)">
+                  {{ o.channel }}
+                </span>
+                <span class="card-date">{{ getDaysSince(o.sentAt) }}</span>
+              </div>
+
+              <p class="card-contact" *ngIf="o.contactName">{{ o.contactName }}</p>
+            </div>
+
+            <div *cdkDragPlaceholder class="drag-placeholder"></div>
+          </div>
+
+          <div *ngIf="columns[status].length === 0" class="empty-column">
+            <span>No outreach</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

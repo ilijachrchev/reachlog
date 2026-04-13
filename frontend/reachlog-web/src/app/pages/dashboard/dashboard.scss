@@ -1,86 +1,179 @@
-.dashboard {
-  padding: 2rem;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
 
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.dashboard {
+  min-height: 100vh;
+  background: #0d0d0e;
+  font-family: 'DM Sans', sans-serif;
+  color: #f0f0f2;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 52px;
+  background: #161618;
+  border-bottom: 1px solid #2a2a2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5b6cf9;
+  box-shadow: 0 0 8px #5b6cf9;
+}
+
+.brand-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-btn {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: #8b8b99;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+
+  &:hover { background: #222226; color: #f0f0f2; }
+  &.active-page { background: #222226; color: #f0f0f2; }
+  &.accent {
+    background: #5b6cf9;
+    color: #fff;
+    margin-left: 0.5rem;
+    &:hover { background: #6b7dff; }
+  }
+  &.danger {
+    color: #f06565;
+    &:hover { background: rgba(240,101,101,0.1); }
   }
 }
 
-.logout-btn {
-  padding: 0.5rem 1rem;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.dashboard-body {
+  padding: 2rem 1.5rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-sub {
+  font-size: 0.8rem;
+  color: #55555f;
+  margin-top: 0.2rem;
+}
+
+.state-msg {
+  color: #55555f;
+  font-size: 0.875rem;
+  padding: 2rem 0;
+}
+
+.outreach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .outreach-card {
-  background: white;
-  padding: 1rem;
+  background: #1c1c1f;
+  border: 1px solid #1f1f23;
   border-radius: 8px;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-
-  p { margin: 0.25rem 0; color: #666; font-size: 0.875rem; }
-}
-
-.card-header {
+  padding: 0.875rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.25rem;
+  transition: border-color 150ms;
 
-  h3 { margin: 0; }
+  &:hover { border-color: #2a2a2e; }
+}
+
+.card-company {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f0f0f2;
+  margin-bottom: 0.15rem;
+}
+
+.card-role {
+  font-size: 0.78rem;
+  color: #8b8b99;
+  margin-bottom: 0.1rem;
+}
+
+.card-contact {
+  font-size: 0.72rem;
+  color: #55555f;
+}
+
+.card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.status-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #222226;
+  color: #8b8b99;
 }
 
 .delete-btn {
-  padding: 0.25rem 0.5rem;
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 4px;
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  color: #55555f;
+  border: 1px solid #2a2a2e;
+  border-radius: 5px;
+  font-size: 0.72rem;
   cursor: pointer;
-  font-size: 0.75rem;
-}
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
 
-.status {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  background: #dbeafe;
-  color: #1d4ed8;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.new-btn {
-  padding: 0.5rem 1rem;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.inbox-btn {
-  padding: 0.5rem 1rem;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-
-  &:hover { background: #4338ca; }
+  &:hover {
+    background: rgba(240,101,101,0.08);
+    border-color: #f06565;
+    color: #f06565;
+  }
 }
