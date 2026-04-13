@@ -10,6 +10,7 @@ import {
 import { OutreachService } from '../../core/services/outreach.service';
 import { NudgeService, Nudge } from '../../core/services/nudge.service';
 import { Outreach } from '../../core/models/outreach.model';
+import { ToastService } from '../../core/services/toast.service';
 
 export const STATUSES = ['Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
 export type Status = typeof STATUSES[number];
@@ -36,7 +37,8 @@ export class KanbanComponent implements OnInit {
   constructor(
     private outreachService: OutreachService,
     private nudgeService: NudgeService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -122,8 +124,12 @@ export class KanbanComponent implements OnInit {
         o.matchScore = result.matchScore;
         o.missingSkills = result.missingSkills;
         this.scoringIds.delete(o.id);
+        this.toastService.success(`${o.companyName} scored ${result.matchScore}%!`);
       },
-      error: () => this.scoringIds.delete(o.id)
+      error: () => {
+        this.scoringIds.delete(o.id);
+        this.toastService.error(`Scoring failed. Try again!`);
+      }
     });
   }
 
