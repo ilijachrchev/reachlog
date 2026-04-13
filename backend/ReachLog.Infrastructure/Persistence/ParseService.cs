@@ -22,19 +22,18 @@ public class ParseService : IParseService
 
     public async Task<ParseResultDto> ParseMessageAsync(string rawMessage)
     {
-        var jsonStructure = """
-            {
-                "companyName": "company name or empty string",
-                "contactName": "contact person name or empty string",
-                "contactEmail": "email address or empty string",
-                "role": "job role or position or empty string",
-                "channel": "Email or LinkedIn",
-                "sentAt": "date in YYYY-MM-DD format or today's date"
-            }
-            """;
-
-        var prompt = $"Extract structured information from this job outreach message and return ONLY a JSON object with no extra text.\n\nMessage:\n{rawMessage}\n\nReturn this exact JSON structure:\n{jsonStructure}";
-
+        var prompt = "You are a data extraction assistant. Extract information from the job outreach message below.\n\n" +
+            "Rules:\n" +
+            "- companyName: the company or organization name mentioned\n" +
+            "- contactName: the full name of the person who sent the message\n" +
+            "- contactEmail: the email address of the sender\n" +
+            "- role: the job title or internship position mentioned\n" +
+            "- channel: MUST be exactly \"Email\" if it looks like an email, or \"LinkedIn\" if it mentions LinkedIn\n" +
+            "- sentAt: the date in YYYY-MM-DD format, or empty string if unknown\n\n" +
+            "IMPORTANT: Extract real values from the message. Do not return empty strings if the information is present.\n\n" +
+            "Message:\n" + rawMessage + "\n\n" +
+            "Return ONLY valid JSON with these exact keys: companyName, contactName, contactEmail, role, channel, sentAt. No markdown, no explanation.";
+        
         var requestBody = new
         {
             model = _model,
@@ -63,6 +62,7 @@ public class ParseService : IParseService
             .GetProperty("content")[0]
             .GetProperty("text")
             .GetString()!;
+
 
         content = content.Trim();
         if (content.StartsWith("```"))

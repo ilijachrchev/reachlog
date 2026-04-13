@@ -18,9 +18,19 @@ export interface CreateOutreachRequest {
   role: string;
   channel: string;
   rawMessage: string;
-  sentAt: string;
+  sentAt: string | null;
+  notes: string;
 }
 
 export interface UpdateStatusRequest {
   status: string;
+}
+
+export interface ParseResult {
+  companyName: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  role: string | null;
+  channel: string | null;
+  sentAt: string | null;
 }

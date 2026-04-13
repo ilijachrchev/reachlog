@@ -1,0 +1,66 @@
+<div class="inbox-container">
+  <div class="inbox-header">
+    <h1>Paste Inbox</h1>
+    <p>Paste a cold email or LinkedIn message — AI will extract the details automatically.</p>
+  </div>
+
+  <div class="paste-area" *ngIf="!parsedResult && !isLoading">
+    <textarea
+      [(ngModel)]="rawText"
+      (paste)="onPaste($event)"
+      placeholder="Paste your message here...&#10;&#10;(Ctrl+V to paste — parsing starts automatically)"
+      rows="10">
+    </textarea>
+    <button class="btn-primary" (click)="runParse()" [disabled]="!rawText.trim()">
+      Parse manually
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>AI is reading your message...</p>
+  </div>
+
+  <div class="result-card" *ngIf="parsedResult && !isLoading">
+    <div class="result-header">
+      <h2>Extracted Details</h2>
+      <span class="badge">Review & confirm</span>
+    </div>
+
+    <div class="fields">
+      <div class="field">
+        <label>Company</label>
+        <input [(ngModel)]="editCompany" placeholder="Company name" />
+      </div>
+      <div class="field">
+        <label>Contact Name</label>
+        <input [(ngModel)]="editContact" placeholder="Contact name" />
+      </div>
+      <div class="field">
+        <label>Contact Email</label>
+        <input [(ngModel)]="editEmail" placeholder="contact@company.com" />
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <input [(ngModel)]="editRole" placeholder="e.g. Junior .NET Developer" />
+      </div>
+      <div class="field">
+        <label>Channel</label>
+        <input [(ngModel)]="editChannel" placeholder="Email / LinkedIn / Other" />
+      </div>
+      <div class="field">
+        <label>Date Sent</label>
+        <input [(ngModel)]="editSentAt" type="date" />
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-primary" (click)="confirmAndSave()" [disabled]="isSaving">
+        {{ isSaving ? 'Saving...' : 'Confirm & Save' }}
+      </button>
+      <button class="btn-secondary" (click)="reset()">Start over</button>
+    </div>
+  </div>
+
+  <div class="error-msg" *ngIf="error">{{ error }}</div>
+</div>
