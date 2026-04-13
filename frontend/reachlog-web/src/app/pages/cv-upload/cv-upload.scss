@@ -1,0 +1,348 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cv-shell {
+  min-height: 100vh;
+  background: #0d0d0e;
+  font-family: 'DM Sans', sans-serif;
+  color: #f0f0f2;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Topbar ───────────────────────────────────────────
+.topbar {
+  height: 52px;
+  background: #111113;
+  border-bottom: 1px solid #333338;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5b6cf9;
+  box-shadow: 0 0 8px #5b6cf9;
+}
+
+.brand-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f0f0f2;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-btn {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: #9090a0;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+
+  &:hover { background: #2a2a30; color: #f0f0f2; }
+  &.active-page { background: #2a2a30; color: #f0f0f2; }
+  &.accent {
+    background: #5b6cf9;
+    color: #fff;
+    margin-left: 0.5rem;
+    &:hover { background: #6b7dff; }
+  }
+}
+
+// ── Body ─────────────────────────────────────────────
+.cv-body {
+  padding: 2rem 1.5rem;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cv-header {
+  margin-bottom: 2rem;
+}
+
+.cv-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cv-sub {
+  font-size: 0.8rem;
+  color: #55555f;
+  margin-top: 0.25rem;
+}
+
+// ── Loading ──────────────────────────────────────────
+.loading-bar-wrap { padding: 2rem 0; }
+
+.loading-bar {
+  height: 2px;
+  width: 180px;
+  background: #2a2a2e;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -60%;
+    top: 0;
+    height: 100%;
+    width: 60%;
+    background: #5b6cf9;
+    animation: slide 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes slide { to { left: 110%; } }
+
+// ── Current CV Card ──────────────────────────────────
+.cv-card {
+  background: #18181c;
+  border: 1px solid #333338;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.cv-card-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(91,108,249,0.1);
+  border: 1px solid rgba(91,108,249,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5b6cf9;
+  flex-shrink: 0;
+}
+
+.cv-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cv-filename {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f0f0f2;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cv-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.cv-meta-item {
+  font-size: 0.75rem;
+  color: #606068;
+}
+
+.cv-meta-dot {
+  color: #3a3a42;
+  font-size: 0.75rem;
+}
+
+.cv-active-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(62,207,142,0.12);
+  color: #3ecf8e;
+  border: 1px solid rgba(62,207,142,0.2);
+  flex-shrink: 0;
+}
+
+.cv-empty-state {
+  background: #18181c;
+  border: 1px dashed #2a2a30;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  text-align: center;
+
+  p {
+    font-size: 0.8125rem;
+    color: #606068;
+  }
+}
+
+// ── Upload Section ───────────────────────────────────
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.upload-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c0c0cc;
+}
+
+.drop-zone {
+  background: #18181c;
+  border: 1px dashed #333338;
+  border-radius: 12px;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+
+  &:hover {
+    border-color: #5b6cf9;
+    background: rgba(91,108,249,0.03);
+  }
+
+  &.drag-over {
+    border-color: #5b6cf9;
+    background: rgba(91,108,249,0.06);
+  }
+
+  &.has-file {
+    border-color: #3ecf8e;
+    border-style: solid;
+    background: rgba(62,207,142,0.03);
+  }
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.drop-icon {
+  color: #55555f;
+  margin-bottom: 0.25rem;
+}
+
+.drop-label {
+  font-size: 0.875rem;
+  color: #9090a0;
+}
+
+.drop-link {
+  color: #5b6cf9;
+  font-weight: 500;
+}
+
+.drop-hint {
+  font-size: 0.75rem;
+  color: #55555f;
+}
+
+.selected-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(62,207,142,0.12);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3ecf8e;
+  margin-bottom: 0.25rem;
+}
+
+.selected-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f0f0f2;
+}
+
+// ── Feedback ─────────────────────────────────────────
+.upload-feedback { min-height: 1.25rem; }
+
+.error-msg {
+  font-size: 0.8rem;
+  color: #f06565;
+}
+
+.success-msg {
+  font-size: 0.8rem;
+  color: #3ecf8e;
+}
+
+// ── Upload Button ─────────────────────────────────────
+.upload-btn {
+  padding: 0.65rem 1.5rem;
+  background: #5b6cf9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, opacity 150ms;
+  align-self: flex-start;
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover:not(:disabled) { background: #6b7dff; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.uploading-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
