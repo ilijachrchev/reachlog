@@ -11,6 +11,7 @@ import { OutreachService } from '../../core/services/outreach.service';
 import { NudgeService, Nudge } from '../../core/services/nudge.service';
 import { Outreach } from '../../core/models/outreach.model';
 import { ToastService } from '../../core/services/toast.service';
+import { FormsModule } from '@angular/forms';
 
 export const STATUSES = ['Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
 export type Status = typeof STATUSES[number];
@@ -18,7 +19,7 @@ export type Status = typeof STATUSES[number];
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [CommonModule, DragDropModule],
+  imports: [CommonModule, DragDropModule, FormsModule],
   templateUrl: './kanban.html',
   styleUrl: './kanban.scss'
 })
@@ -81,6 +82,30 @@ export class KanbanComponent implements OnInit {
 
   getListId(status: string): string {
     return `list-${status}`;
+  }
+
+  changeStatus(newStatus: string): void {
+    if (!this.selectedOutreach || this.selectedOutreach.status === newStatus) return;
+
+    const outreach = this.selectedOutreach;
+    const previousStatus = outreach.status;
+
+    this.columns[previousStatus] = this.columns[previousStatus].filter(o => o.id !== outreach.id);
+
+    outreach.status = newStatus;
+    this.columns[newStatus].push(outreach);
+
+    this.outreachService.updateStatus(outreach.id, { status: newStatus }).subscribe({
+      next: () => {
+        this.toastService.success(`Moved to ${newStatus}`);
+      },
+      error: () => {
+        this.columns[newStatus] = this.columns[newStatus].filter(o => o.id !== outreach.id);
+        outreach.status = previousStatus;
+        this.columns[previousStatus].push(outreach);
+        this.toastService.error('Failed to update status.');
+      }
+    });
   }
 
   drop(event: CdkDragDrop<Outreach[]>, targetStatus: string): void {
