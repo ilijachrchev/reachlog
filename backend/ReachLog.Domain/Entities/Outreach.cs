@@ -17,4 +17,5 @@ public class Outreach
     public User User { get; set; } = null!;
     public int? MatchScore { get; set; }
     public string? MissingSkills { get; set; }
+    public string? Notes { get; set; }
 }
