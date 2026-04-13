@@ -768,6 +768,23 @@
   }
 }
 
+.detail-delete-btn {
+  padding: 0.3rem 0.85rem;
+  background: #25252b;
+  color: #f0f0f2;
+  border: 1px solid #333338;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:hover {
+    background: rgba(240,101,101,0.12);
+    border-color: rgba(240,101,101,0.4);
+    color: #f06565;
+  }
+}
+
 .detail-notes {
   color: #9090a0;
   font-size: 0.875rem;
