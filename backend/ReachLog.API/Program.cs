@@ -19,6 +19,7 @@ builder.Services.AddScoped<IOutreachService, OutreachService>();
 builder.Services.AddHttpClient<IParseService, ParseService>();
 builder.Services.AddScoped<ICvService, CvService>();
 builder.Services.AddScoped<IScoreService, ScoreService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
