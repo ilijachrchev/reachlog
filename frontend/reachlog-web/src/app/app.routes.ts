@@ -26,6 +26,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'cv',
+    loadComponent: () => import('./pages/cv-upload/cv-upload').then(m => m.CvUploadComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'outreach/new',
     loadComponent: () => import('./pages/create-outreach/create-outreach').then(m => m.CreateOutreachComponent),
     canActivate: [authGuard]
