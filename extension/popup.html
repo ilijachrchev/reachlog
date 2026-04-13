@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <span class="dot"></span>
+      <span class="title">ReachLog</span>
+    </div>
+
+    <div id="view-settings" class="view">
+      <p class="label">API URL</p>
+      <input id="apiUrl" type="text" placeholder="http://localhost:5155" />
+
+      <p class="label">Bearer Token</p>
+      <input id="token" type="password" placeholder="Paste your JWT token" />
+
+      <button id="saveBtn" class="btn-primary">Save Settings</button>
+      <p id="saveMsg" class="msg"></p>
+    </div>
+
+    <div id="view-capture" class="view hidden">
+      <div class="capture-info">
+        <p class="capture-label">Captured from LinkedIn</p>
+        <p id="captureName" class="capture-name"></p>
+        <p id="capturePreview" class="capture-preview"></p>
+      </div>
+      <button id="sendBtn" class="btn-primary">Send to ReachLog</button>
+      <button id="discardBtn" class="btn-secondary">Discard</button>
+      <p id="statusMsg" class="msg"></p>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

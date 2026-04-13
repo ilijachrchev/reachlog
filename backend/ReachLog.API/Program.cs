@@ -42,7 +42,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.AddPolicy("AllowAngular", policy =>
         {
-            policy.WithOrigins("http://localhost:4200")
+            policy.SetIsOriginAllowed(origin => 
+                origin.StartsWith("http://localhost") ||
+                origin.StartsWith("chrome-extension://"))
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
