@@ -1,66 +1,85 @@
-<div class="inbox-container">
-  <div class="inbox-header">
-    <h1>Paste Inbox</h1>
-    <p>Paste a cold email or LinkedIn message — AI will extract the details automatically.</p>
-  </div>
+<div class="inbox-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn active-page">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToCv()">CV</button>
+      <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
 
-  <div class="paste-area" *ngIf="!parsedResult && !isLoading">
-    <textarea
-      [(ngModel)]="rawText"
-      (paste)="onPaste($event)"
-      placeholder="Paste your message here...&#10;&#10;(Ctrl+V to paste — parsing starts automatically)"
-      rows="10">
-    </textarea>
-    <button class="btn-primary" (click)="runParse()" [disabled]="!rawText.trim()">
-      Parse manually
-    </button>
-  </div>
-
-  <div class="loading-state" *ngIf="isLoading">
-    <div class="spinner"></div>
-    <p>AI is reading your message...</p>
-  </div>
-
-  <div class="result-card" *ngIf="parsedResult && !isLoading">
-    <div class="result-header">
-      <h2>Extracted Details</h2>
-      <span class="badge">Review & confirm</span>
+  <main class="inbox-body">
+    <div class="inbox-header">
+      <h1 class="inbox-title">Paste Inbox</h1>
+      <p class="inbox-sub">Paste a cold email or LinkedIn message — AI will extract the details automatically.</p>
     </div>
 
-    <div class="fields">
-      <div class="field">
-        <label>Company</label>
-        <input [(ngModel)]="editCompany" placeholder="Company name" />
-      </div>
-      <div class="field">
-        <label>Contact Name</label>
-        <input [(ngModel)]="editContact" placeholder="Contact name" />
-      </div>
-      <div class="field">
-        <label>Contact Email</label>
-        <input [(ngModel)]="editEmail" placeholder="contact@company.com" />
-      </div>
-      <div class="field">
-        <label>Role</label>
-        <input [(ngModel)]="editRole" placeholder="e.g. Junior .NET Developer" />
-      </div>
-      <div class="field">
-        <label>Channel</label>
-        <input [(ngModel)]="editChannel" placeholder="Email / LinkedIn / Other" />
-      </div>
-      <div class="field">
-        <label>Date Sent</label>
-        <input [(ngModel)]="editSentAt" type="date" />
-      </div>
-    </div>
-
-    <div class="result-actions">
-      <button class="btn-primary" (click)="confirmAndSave()" [disabled]="isSaving">
-        {{ isSaving ? 'Saving...' : 'Confirm & Save' }}
+    <div class="paste-area" *ngIf="!parsedResult && !isLoading">
+      <textarea
+        [(ngModel)]="rawText"
+        (paste)="onPaste($event)"
+        placeholder="Paste your message here...&#10;&#10;Ctrl+V to paste — parsing starts automatically"
+        rows="10">
+      </textarea>
+      <button class="btn-primary" (click)="runParse()" [disabled]="!rawText.trim()">
+        Parse manually
       </button>
-      <button class="btn-secondary" (click)="reset()">Start over</button>
     </div>
-  </div>
 
-  <div class="error-msg" *ngIf="error">{{ error }}</div>
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="loading-bar-wrap">
+        <div class="loading-bar"></div>
+      </div>
+      <p class="loading-label">AI is reading your message...</p>
+    </div>
+
+    <div class="result-card" *ngIf="parsedResult && !isLoading">
+      <div class="result-header">
+        <span class="result-title">Extracted Details</span>
+        <span class="result-badge">Review & confirm</span>
+      </div>
+
+      <div class="fields">
+        <div class="field">
+          <label>Company</label>
+          <input [(ngModel)]="editCompany" placeholder="Company name" />
+        </div>
+        <div class="field">
+          <label>Contact Name</label>
+          <input [(ngModel)]="editContact" placeholder="Contact name" />
+        </div>
+        <div class="field">
+          <label>Contact Email</label>
+          <input [(ngModel)]="editEmail" placeholder="contact@company.com" />
+        </div>
+        <div class="field">
+          <label>Role</label>
+          <input [(ngModel)]="editRole" placeholder="e.g. Junior .NET Developer" />
+        </div>
+        <div class="field">
+          <label>Channel</label>
+          <input [(ngModel)]="editChannel" placeholder="Email / LinkedIn / Other" />
+        </div>
+        <div class="field">
+          <label>Date Sent</label>
+          <input [(ngModel)]="editSentAt" type="date" />
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" (click)="confirmAndSave()" [disabled]="isSaving">
+          {{ isSaving ? 'Saving...' : 'Confirm & Save' }}
+        </button>
+        <button class="btn-secondary" (click)="reset()">Start over</button>
+      </div>
+    </div>
+
+    <p class="error-msg" *ngIf="error">{{ error }}</p>
+  </main>
 </div>
