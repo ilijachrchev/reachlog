@@ -58,6 +58,28 @@ public class OutreachService : IOutreachService
         return MapToDto(outreach);
     }
 
+    public async Task<OutreachDto> UpdateAsync(Guid id, UpdateOutreachDto request, Guid userId)
+    {
+        var outreach = await _context.Outreaches
+            .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+
+        if (outreach == null)
+            throw new KeyNotFoundException("Outreach not found.");
+
+        outreach.CompanyName = request.CompanyName;
+        outreach.ContactName = request.ContactName;
+        outreach.ContactEmail = request.ContactEmail;
+        outreach.Role = request.Role;
+        outreach.Channel = request.Channel;
+        outreach.RawMessage = request.RawMessage;
+        outreach.Notes = request.Notes;
+        outreach.SentAt = request.SentAt;
+
+        await _context.SaveChangesAsync();
+
+        return MapToDto(outreach);
+    }
+
     public async Task<OutreachDto> UpdateStatusAsync(Guid id, UpdateStatusDto request, Guid userId)
     {
         var outreach = await _context.Outreaches
@@ -122,6 +144,7 @@ public class OutreachService : IOutreachService
         MissingSkills = string.IsNullOrEmpty(outreach.MissingSkills)
             ? []
             : JsonSerializer.Deserialize<List<string>>(outreach.MissingSkills) ?? [],
-        RawMessage = outreach.RawMessage
+        RawMessage = outreach.RawMessage,
+        Notes = outreach.Notes
     };
 }

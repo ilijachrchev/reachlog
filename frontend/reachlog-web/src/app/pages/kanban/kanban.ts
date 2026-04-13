@@ -137,6 +137,10 @@ export class KanbanComponent implements OnInit {
     return this.scoringIds.has(id);
   }
 
+  editOutreach(o: Outreach): void {
+    this.router.navigate([`/outreach/${o.id}/edit`]);
+  }
+
   getChannelClass(channel: string): string {
     const c = channel?.toLowerCase();
     if (c === 'email') return 'channel-email';
