@@ -1,0 +1,116 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+  transferArrayItem
+} from '@angular/cdk/drag-drop';
+import { OutreachService } from '../../core/services/outreach.service';
+import { Outreach } from '../../core/models/outreach.model';
+
+export const STATUSES = ['Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
+export type Status = typeof STATUSES[number];
+
+@Component({
+  selector: 'app-kanban',
+  standalone: true,
+  imports: [CommonModule, DragDropModule],
+  templateUrl: './kanban.html',
+  styleUrl: './kanban.scss'
+})
+export class KanbanComponent implements OnInit {
+  statuses = [...STATUSES];
+  columns: Record<string, Outreach[]> = {};
+  loading = true;
+  connectedLists: string[] = [];
+
+  constructor(
+    private outreachService: OutreachService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.statuses.forEach(s => this.columns[s] = []);
+    this.connectedLists = this.statuses.map(s => `list-${s}`);
+
+    this.outreachService.getAll().subscribe({
+      next: (data) => {
+        data.forEach(o => {
+          const col = this.columns[o.status];
+          if (col) col.push(o);
+          else this.columns['Sent'].push(o);
+        });
+        this.loading = false;
+      },
+      error: () => this.loading = false
+    });
+  }
+
+  getListId(status: string): string {
+    return `list-${status}`;
+  }
+
+  drop(event: CdkDragDrop<Outreach[]>, targetStatus: string): void {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      return;
+    }
+
+    const item = event.previousContainer.data[event.previousIndex];
+    const previousStatus = item.status;
+
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+    item.status = targetStatus;
+
+    this.outreachService.updateStatus(item.id, { status: targetStatus }).subscribe({
+      error: () => {
+        transferArrayItem(
+          event.container.data,
+          event.previousContainer.data,
+          event.currentIndex,
+          event.previousIndex
+        );
+        item.status = previousStatus;
+      }
+    });
+  }
+
+  getChannelClass(channel: string): string {
+    const c = channel?.toLowerCase();
+    if (c === 'email') return 'channel-email';
+    if (c === 'linkedin') return 'channel-linkedin';
+    return 'channel-other';
+  }
+
+  getScoreBadgeClass(score: number | null): string {
+    if (score === null || score === undefined) return 'score-none';
+    if (score >= 75) return 'score-high';
+    if (score >= 50) return 'score-mid';
+    return 'score-low';
+  }
+
+  getScoreLabel(score: number | null): string {
+    if (score === null || score === undefined) return '—';
+    return `${score}%`;
+  }
+
+  getDaysSince(sentAt: string): string {
+    if (!sentAt) return '';
+    const diff = Math.floor((Date.now() - new Date(sentAt).getTime()) / 86400000);
+    if (diff === 0) return 'today';
+    if (diff === 1) return '1d ago';
+    return `${diff}d ago`;
+  }
+
+  goToInbox(): void { this.router.navigate(['/inbox']); }
+  goToDashboard(): void { this.router.navigate(['/dashboard']); }
+  goToNew(): void { this.router.navigate(['/outreach/new']); }
+}

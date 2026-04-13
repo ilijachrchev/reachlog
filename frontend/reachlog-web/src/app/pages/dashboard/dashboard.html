@@ -1,27 +1,38 @@
 <div class="dashboard">
-  <header>
-    <h1>ReachLog</h1>
-    <button (click)="goToInbox()" class="inbox-btn">Paste Inbox</button>
-    <button (click)="logout()" class="logout-btn">Logout</button>
-    <button (click)="goToNew()" class="new-btn">+ New Outreach</button>
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn active-page">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+      <button class="nav-btn danger" (click)="logout()">Logout</button>
+    </nav>
   </header>
 
-  <main>
-    <p *ngIf="loading">Loading...</p>
+  <main class="dashboard-body">
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">Dashboard</h1>
+      <p class="dashboard-sub">{{ outreaches.length }} outreach records</p>
+    </div>
 
-    <p *ngIf="!loading && outreaches.length === 0">
-      No outreaches yet.
-    </p>
+    <p *ngIf="loading" class="state-msg">Loading...</p>
+    <p *ngIf="!loading && outreaches.length === 0" class="state-msg">No outreaches yet. Hit + New to start.</p>
 
     <div class="outreach-list" *ngIf="!loading && outreaches.length > 0">
       <div class="outreach-card" *ngFor="let o of outreaches">
-        <div class="card-header">
-          <h3>{{ o.companyName }}</h3>
+        <div class="card-left">
+          <h3 class="card-company">{{ o.companyName }}</h3>
+          <p class="card-role">{{ o.role }}</p>
+          <p class="card-contact">{{ o.contactName }}<span *ngIf="o.contactEmail"> · {{ o.contactEmail }}</span></p>
+        </div>
+        <div class="card-right">
+          <span class="status-pill">{{ o.status }}</span>
           <button class="delete-btn" (click)="delete(o.id)">Delete</button>
         </div>
-        <p>{{ o.role }}</p>
-        <p>{{ o.contactName }} — {{ o.contactEmail }}</p>
-        <span class="status">{{ o.status }}</span>
       </div>
     </div>
   </main>
