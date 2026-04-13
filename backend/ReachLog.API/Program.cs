@@ -6,7 +6,6 @@ using ReachLog.Infrastructure.Persistence;
 using ReachLog.Infrastructure.Services;
 using System.Text;
 using ReachLog.Infrastructure.Repositories;
-using ReachLog.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +17,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOutreachService, OutreachService>();
 builder.Services.AddHttpClient<IParseService, ParseService>();
+builder.Services.AddScoped<ICvService, CvService>();
+builder.Services.AddScoped<IScoreService, ScoreService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
