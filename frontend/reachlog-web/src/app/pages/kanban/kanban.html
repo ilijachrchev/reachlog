@@ -14,7 +14,6 @@
     </nav>
   </header>
 
-  <!-- Nudges Panel -->
   <div class="nudges-panel" *ngIf="nudges.length > 0">
     <div class="nudges-bar" (click)="toggleNudges()">
       <div class="nudges-bar-left">
@@ -54,7 +53,7 @@
   <div class="kanban-body">
     <div class="kanban-header">
       <h1 class="kanban-title">Pipeline</h1>
-      <p class="kanban-sub">Drag cards to update status</p>
+      <p class="kanban-sub">Drag cards to update status · Click to view details</p>
     </div>
 
     <div *ngIf="loading" class="loading-state">
@@ -89,14 +88,15 @@
             class="outreach-card"
             cdkDrag
             [cdkDragData]="o"
+            (click)="openDetail(o)"
           >
             <div class="card-channel-strip" [class]="getChannelClass(o.channel)"></div>
 
             <div class="card-body">
               <div class="card-top">
                 <span class="card-company">{{ o.companyName }}</span>
-                <span class="score-badge" [class]="getScoreBadgeClass(o.cvMatchScore)">
-                  {{ getScoreLabel(o.cvMatchScore) }}
+                <span class="score-badge" [class]="getScoreBadgeClass(o.matchScore)">
+                  {{ getScoreLabel(o.matchScore) }}
                 </span>
               </div>
 
@@ -119,7 +119,7 @@
                   (click)="scoreOutreach($event, o)"
                 >
                   <span *ngIf="!isScoring(o.id)">
-                    {{ o.cvMatchScore !== null ? 'Re-score' : 'Score' }}
+                    {{ o.matchScore !== null ? 'Re-score' : 'Score' }}
                   </span>
                   <span *ngIf="isScoring(o.id)" class="score-spinner"></span>
                 </button>
@@ -136,4 +136,76 @@
       </div>
     </div>
   </div>
-</div>
+
+  <div class="detail-overlay" *ngIf="selectedOutreach" (click)="closeDetail()"></div>
+
+  <div class="detail-panel" *ngIf="selectedOutreach" [class.open]="selectedOutreach">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <span class="detail-company">{{ selectedOutreach.companyName }}</span>
+        <span class="score-badge large" [class]="getScoreBadgeClass(selectedOutreach.matchScore)">
+          {{ getScoreLabel(selectedOutreach.matchScore) }}
+        </span>
+      </div>
+      <button class="detail-close" (click)="closeDetail()">✕</button>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="detail-meta-row">
+        <span class="detail-meta-item">
+          <span class="detail-meta-label">Role</span>
+          <span class="detail-meta-value">{{ selectedOutreach.role || '—' }}</span>
+        </span>
+        <span class="detail-meta-item">
+          <span class="detail-meta-label">Status</span>
+          <span class="detail-meta-value">{{ selectedOutreach.status }}</span>
+        </span>
+        <span class="detail-meta-item">
+          <span class="detail-meta-label">Channel</span>
+          <span class="detail-meta-value" [class]="'channel-text-' + selectedOutreach.channel.toLowerCase()">
+            {{ selectedOutreach.channel }}
+          </span>
+        </span>
+        <span class="detail-meta-item">
+          <span class="detail-meta-label">Sent</span>
+          <span class="detail-meta-value">{{ formatDate(selectedOutreach.sentAt) }}</span>
+        </span>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedOutreach.contactName || selectedOutreach.contactEmail">
+        <h3 class="detail-section-title">Contact</h3>
+        <p class="detail-contact-name" *ngIf="selectedOutreach.contactName">
+          {{ selectedOutreach.contactName }}
+        </p>
+        <p class="detail-contact-email" *ngIf="selectedOutreach.contactEmail">
+          {{ selectedOutreach.contactEmail }}
+        </p>
+      </div>
+
+    <div class="detail-section">
+      <h3 class="detail-section-title">CV Match</h3>
+      <div *ngIf="selectedOutreach.matchScore !== null && selectedOutreach.matchScore !== undefined">
+        <div class="detail-skills" *ngIf="selectedOutreach.missingSkills && selectedOutreach.missingSkills.length > 0">
+          <span
+            *ngFor="let skill of selectedOutreach.missingSkills"
+            class="detail-skill-tag"
+          >{{ skill }}</span>
+        </div>
+        <p class="detail-empty" *ngIf="!selectedOutreach.missingSkills || selectedOutreach.missingSkills.length === 0">
+          No missing skills identified.
+        </p>
+      </div>
+      <div *ngIf="selectedOutreach.matchScore === null || selectedOutreach.matchScore === undefined" class="detail-score-prompt">
+        <p class="detail-empty">Not scored yet — run CV match to see missing skills.</p>
+        <button
+          class="score-btn detail-score-btn"
+          [class.scoring]="isScoring(selectedOutreach.id)"
+          [disabled]="isScoring(selectedOutreach.id)"
+          (click)="scoreOutreach($event, selectedOutreach)"
+        >
+          <span *ngIf="!isScoring(selectedOutreach.id)">Score against CV</span>
+          <span *ngIf="isScoring(selectedOutreach.id)" class="score-spinner"></span>
+        </button>
+      </div>
+    </div>

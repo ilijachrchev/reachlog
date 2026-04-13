@@ -121,6 +121,7 @@ public class OutreachService : IOutreachService
         MatchScore = outreach.MatchScore,
         MissingSkills = string.IsNullOrEmpty(outreach.MissingSkills)
             ? []
-            : JsonSerializer.Deserialize<List<string>>(outreach.MissingSkills) ?? []
+            : JsonSerializer.Deserialize<List<string>>(outreach.MissingSkills) ?? [],
+        RawMessage = outreach.RawMessage
     };
 }
