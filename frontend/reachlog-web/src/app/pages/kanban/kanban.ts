@@ -31,6 +31,8 @@ export class KanbanComponent implements OnInit {
   nudges: Nudge[] = [];
   nudgesExpanded = true;
 
+  selectedOutreach: Outreach | null = null;
+
   constructor(
     private outreachService: OutreachService,
     private nudgeService: NudgeService,
@@ -65,6 +67,14 @@ export class KanbanComponent implements OnInit {
 
   dismissNudge(outreachId: string): void {
     this.nudges = this.nudges.filter(n => n.outreachId !== outreachId);
+  }
+
+  openDetail(o: Outreach): void {
+    this.selectedOutreach = o;
+  }
+
+  closeDetail(): void {
+    this.selectedOutreach = null;
   }
 
   getListId(status: string): string {
@@ -109,7 +119,7 @@ export class KanbanComponent implements OnInit {
 
     this.outreachService.score(o.id).subscribe({
       next: (result) => {
-        o.cvMatchScore = result.matchScore;
+        o.matchScore = result.matchScore;
         o.missingSkills = result.missingSkills;
         this.scoringIds.delete(o.id);
       },
@@ -148,9 +158,15 @@ export class KanbanComponent implements OnInit {
     return `${diff}d ago`;
   }
 
+  formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  }
+
   goToInbox(): void { this.router.navigate(['/inbox']); }
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
-  goToAnalytics(): void { this.router.navigate(['/analytics']); }
   goToCv(): void { this.router.navigate(['/cv']); }
+  goToAnalytics(): void { this.router.navigate(['/analytics']); }
 }
