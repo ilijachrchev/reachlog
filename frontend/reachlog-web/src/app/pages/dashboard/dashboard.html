@@ -34,6 +34,7 @@
         <div class="card-right">
           <span class="status-pill">{{ o.status }}</span>
           <ng-container *ngIf="confirmDeleteId !== o.id">
+            <button class="edit-btn" (click)="editOutreach(o)">Edit</button>
             <button class="delete-btn" (click)="askDelete(o.id)">Delete</button>
           </ng-container>
           <ng-container *ngIf="confirmDeleteId === o.id">
