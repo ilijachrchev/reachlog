@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Outreach, CreateOutreachRequest, UpdateStatusRequest } from '../models/outreach.model';
 
+export interface ScoreResult {
+  matchScore: number;
+  missingSkills: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,6 +30,10 @@ export class OutreachService {
 
   updateStatus(id: string, request: UpdateStatusRequest): Observable<Outreach> {
     return this.http.patch<Outreach>(`${this.apiUrl}/${id}/status`, request);
+  }
+
+  score(id: string): Observable<ScoreResult> {
+    return this.http.post<ScoreResult>(`${this.apiUrl}/${id}/score`, {});
   }
 
   delete(id: string): Observable<void> {
