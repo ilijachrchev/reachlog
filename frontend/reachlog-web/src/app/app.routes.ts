@@ -2,11 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full'
-  },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent)
@@ -31,6 +27,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'analytics',
+    loadComponent: () => import('./pages/analytics/analytics').then(m => m.AnalyticsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'outreach/new',
     loadComponent: () => import('./pages/create-outreach/create-outreach').then(m => m.CreateOutreachComponent),
     canActivate: [authGuard]
@@ -40,8 +41,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/paste-inbox/paste-inbox').then(m => m.PasteInboxComponent),
     canActivate: [authGuard]
   },
-  {
-    path: '**',
-    redirectTo: 'dashboard'
+  { 
+    path: '**', redirectTo: 'dashboard'
   }
 ];
