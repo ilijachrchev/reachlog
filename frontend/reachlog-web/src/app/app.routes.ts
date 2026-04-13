@@ -37,6 +37,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'outreach/:id/edit',
+    loadComponent: () => import('./pages/edit-outreach/edit-outreach').then(m => m.EditOutreachComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'inbox',
     loadComponent: () => import('./pages/paste-inbox/paste-inbox').then(m => m.PasteInboxComponent),
     canActivate: [authGuard]

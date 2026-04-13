@@ -1,4 +1,5 @@
 namespace ReachLog.Application.DTOs.Outreach;
+
 public class OutreachDto
 {
     public Guid Id { get; set; }
@@ -14,4 +15,5 @@ public class OutreachDto
     public int? MatchScore { get; set; }
     public List<string> MissingSkills { get; set; } = [];
     public string? RawMessage { get; set; }
+    public string? Notes { get; set; }
 }

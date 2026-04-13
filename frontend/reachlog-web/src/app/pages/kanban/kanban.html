@@ -147,7 +147,10 @@
           {{ getScoreLabel(selectedOutreach.matchScore) }}
         </span>
       </div>
-      <button class="detail-close" (click)="closeDetail()">✕</button>
+      <div class="detail-header-actions">
+        <button class="detail-edit-btn" (click)="editOutreach(selectedOutreach)">Edit</button>
+        <button class="detail-close" (click)="closeDetail()">✕</button>
+      </div>
     </div>
 
     <div class="detail-body">
@@ -183,29 +186,38 @@
         </p>
       </div>
 
-    <div class="detail-section">
-      <h3 class="detail-section-title">CV Match</h3>
-      <div *ngIf="selectedOutreach.matchScore !== null && selectedOutreach.matchScore !== undefined">
-        <div class="detail-skills" *ngIf="selectedOutreach.missingSkills && selectedOutreach.missingSkills.length > 0">
-          <span
-            *ngFor="let skill of selectedOutreach.missingSkills"
-            class="detail-skill-tag"
-          >{{ skill }}</span>
+      <div class="detail-section" *ngIf="selectedOutreach.notes">
+        <h3 class="detail-section-title">Notes</h3>
+        <p class="detail-notes">{{ selectedOutreach.notes }}</p>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-section-title">CV Match</h3>
+        <div *ngIf="selectedOutreach.matchScore !== null && selectedOutreach.matchScore !== undefined">
+          <div class="detail-skills" *ngIf="selectedOutreach.missingSkills && selectedOutreach.missingSkills.length > 0">
+            <span
+              *ngFor="let skill of selectedOutreach.missingSkills"
+              class="detail-skill-tag"
+            >{{ skill }}</span>
+          </div>
+          <p class="detail-empty" *ngIf="!selectedOutreach.missingSkills || selectedOutreach.missingSkills.length === 0">
+            No missing skills identified.
+          </p>
         </div>
-        <p class="detail-empty" *ngIf="!selectedOutreach.missingSkills || selectedOutreach.missingSkills.length === 0">
-          No missing skills identified.
-        </p>
+        <div *ngIf="selectedOutreach.matchScore === null || selectedOutreach.matchScore === undefined" class="detail-score-prompt">
+          <p class="detail-empty">Not scored yet — run CV match to see missing skills.</p>
+          <button
+            class="score-btn detail-score-btn"
+            [class.scoring]="isScoring(selectedOutreach.id)"
+            [disabled]="isScoring(selectedOutreach.id)"
+            (click)="scoreOutreach($event, selectedOutreach)"
+          >
+            <span *ngIf="!isScoring(selectedOutreach.id)">Score against CV</span>
+            <span *ngIf="isScoring(selectedOutreach.id)" class="score-spinner"></span>
+          </button>
+        </div>
       </div>
-      <div *ngIf="selectedOutreach.matchScore === null || selectedOutreach.matchScore === undefined" class="detail-score-prompt">
-        <p class="detail-empty">Not scored yet — run CV match to see missing skills.</p>
-        <button
-          class="score-btn detail-score-btn"
-          [class.scoring]="isScoring(selectedOutreach.id)"
-          [disabled]="isScoring(selectedOutreach.id)"
-          (click)="scoreOutreach($event, selectedOutreach)"
-        >
-          <span *ngIf="!isScoring(selectedOutreach.id)">Score against CV</span>
-          <span *ngIf="isScoring(selectedOutreach.id)" class="score-spinner"></span>
-        </button>
-      </div>
+
     </div>
+  </div>
+</div>
