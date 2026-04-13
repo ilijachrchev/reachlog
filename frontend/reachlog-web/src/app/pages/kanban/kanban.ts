@@ -8,6 +8,7 @@ import {
   transferArrayItem
 } from '@angular/cdk/drag-drop';
 import { OutreachService } from '../../core/services/outreach.service';
+import { NudgeService, Nudge } from '../../core/services/nudge.service';
 import { Outreach } from '../../core/models/outreach.model';
 
 export const STATUSES = ['Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
@@ -27,8 +28,12 @@ export class KanbanComponent implements OnInit {
   connectedLists: string[] = [];
   scoringIds = new Set<string>();
 
+  nudges: Nudge[] = [];
+  nudgesExpanded = true;
+
   constructor(
     private outreachService: OutreachService,
+    private nudgeService: NudgeService,
     private router: Router
   ) {}
 
@@ -47,6 +52,19 @@ export class KanbanComponent implements OnInit {
       },
       error: () => this.loading = false
     });
+
+    this.nudgeService.getNudges().subscribe({
+      next: (data) => this.nudges = data,
+      error: () => this.nudges = []
+    });
+  }
+
+  toggleNudges(): void {
+    this.nudgesExpanded = !this.nudgesExpanded;
+  }
+
+  dismissNudge(outreachId: string): void {
+    this.nudges = this.nudges.filter(n => n.outreachId !== outreachId);
   }
 
   getListId(status: string): string {
