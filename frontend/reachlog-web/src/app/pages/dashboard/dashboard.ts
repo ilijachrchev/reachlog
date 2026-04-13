@@ -26,6 +26,10 @@ export class DashboardComponent implements OnInit {
   this.router.navigate(['/outreach/new']);
 }
 
+  goToInbox(): void {
+    this.router.navigate(['/inbox']);
+  }
+
   ngOnInit(): void {
     this.outreachService.getAll().subscribe({
       next: (data) => {
