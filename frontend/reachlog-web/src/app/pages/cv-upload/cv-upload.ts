@@ -92,5 +92,6 @@ export class CvUploadComponent implements OnInit {
   goToKanban(): void { this.router.navigate(['/kanban']); }
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
+  goToAnalytics(): void { this.router.navigate(['/analytics']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
 }
