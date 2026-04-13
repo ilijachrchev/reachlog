@@ -166,6 +166,17 @@ export class KanbanComponent implements OnInit {
     this.router.navigate([`/outreach/${o.id}/edit`]);
   }
 
+  deleteOutreach(o: Outreach): void {
+    this.outreachService.delete(o.id).subscribe({
+      next: () => {
+        this.columns[o.status] = this.columns[o.status].filter(x => x.id !== o.id);
+        this.selectedOutreach = null;
+        this.toastService.success('Outreach deleted.');
+      },
+      error: () => this.toastService.error('Failed to delete outreach.')
+    });
+  }
+
   getChannelClass(channel: string): string {
     const c = channel?.toLowerCase();
     if (c === 'email') return 'channel-email';
