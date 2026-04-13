@@ -1,0 +1,127 @@
+<div class="analytics-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToCv()">CV</button>
+      <button class="nav-btn active-page">Analytics</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <main class="analytics-body">
+    <div class="analytics-header">
+      <h1 class="analytics-title">Analytics</h1>
+      <p class="analytics-sub">Your outreach performance at a glance</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-bar-wrap">
+      <div class="loading-bar"></div>
+    </div>
+
+    <div *ngIf="!loading && analytics" class="analytics-content">
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Outreaches</span>
+          <span class="stat-value">{{ analytics.totalOutreaches }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Open Rate</span>
+          <span class="stat-value" [class.stat-zero]="analytics.openRate === 0">
+            {{ formatRate(analytics.openRate) }}
+          </span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Reply Rate</span>
+          <span class="stat-value" [class.stat-zero]="analytics.replyRate === 0">
+            {{ formatRate(analytics.replyRate) }}
+          </span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg Match Score</span>
+          <span class="stat-value" [class.stat-zero]="!analytics.averageMatchScore">
+            {{ formatScore(analytics.averageMatchScore) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="charts-row">
+
+        <div class="chart-card">
+          <h2 class="chart-title">By Status</h2>
+          <div class="bar-chart">
+            <div *ngFor="let entry of getStatusEntries()" class="bar-row">
+              <span class="bar-label">{{ entry.key }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.width]="getBarWidth(entry.value, getMaxStatus())"
+                  [style.background]="getStatusColor(entry.key)"
+                ></div>
+              </div>
+              <span class="bar-value">{{ entry.value }}</span>
+            </div>
+            <div *ngIf="getStatusEntries().length === 0" class="chart-empty">
+              No data yet
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">By Channel</h2>
+          <div class="bar-chart">
+            <div *ngFor="let entry of getChannelEntries()" class="bar-row">
+              <span class="bar-label">{{ entry.key }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.width]="getBarWidth(entry.value, getMaxChannel())"
+                  [style.background]="getChannelColor(entry.key)"
+                ></div>
+              </div>
+              <span class="bar-value">{{ entry.value }}</span>
+            </div>
+            <div *ngIf="getChannelEntries().length === 0" class="chart-empty">
+              No data yet
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="skill-card" *ngIf="analytics.topMissingSkills.length > 0">
+        <h2 class="chart-title">Top Missing Skills</h2>
+        <p class="chart-sub">Aggregated across all CV match scores</p>
+        <div class="skill-list">
+          <div *ngFor="let skill of analytics.topMissingSkills; let i = index" class="skill-row">
+            <span class="skill-rank">#{{ i + 1 }}</span>
+            <span class="skill-name">{{ skill.skill }}</span>
+            <div class="skill-bar-track">
+              <div
+                class="skill-bar-fill"
+                [style.width]="getBarWidth(skill.count, getMaxSkill())"
+              ></div>
+            </div>
+            <span class="skill-count">{{ skill.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card empty-skills" *ngIf="analytics.topMissingSkills.length === 0">
+        <h2 class="chart-title">Top Missing Skills</h2>
+        <p class="chart-empty">Score some outreaches to see skill gaps appear here.</p>
+      </div>
+
+    </div>
+
+    <div *ngIf="!loading && !analytics" class="empty-state">
+      <p>No data yet. Create some outreaches to see analytics.</p>
+    </div>
+  </main>
+</div>

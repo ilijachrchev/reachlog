@@ -39,7 +39,7 @@ public class NudgeService : INudgeService
                     SentAt = outreach.SentAt,
                     DaysSinceSent = daysSinceSent,
                     NudgeType = "NoReply",
-                    Message = $"No reply from {outreach.CompanyName} in {daysSinceSent} days — consider following up."
+                    Message = $"No reply from {outreach.CompanyName} in {daysSinceSent} days - consider following up."
                 });
             }
             else if (outreach.Status == "Rejected" && daysSinceSent <= RecentRejectionWindowDays)
@@ -52,7 +52,7 @@ public class NudgeService : INudgeService
                     SentAt = outreach.SentAt,
                     DaysSinceSent = daysSinceSent,
                     NudgeType = "RecentRejection",
-                    Message = $"Rejected by {outreach.CompanyName} {daysSinceSent} days ago — a polite follow-up may still be worth it."
+                    Message = $"Rejected by {outreach.CompanyName} {daysSinceSent} days ago - a polite follow-up may still be worth it."
                 });
             }
         }
