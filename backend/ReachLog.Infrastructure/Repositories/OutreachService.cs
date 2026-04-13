@@ -83,6 +83,28 @@ public class OutreachService : IOutreachService
         await _context.SaveChangesAsync();
     }
 
+    public async Task<DuplicateCheckDto> CheckDuplicateAsync(string companyName, Guid userId)
+    {
+        var matches = await _context.Outreaches
+            .Where(o => o.UserId == userId &&
+                o.CompanyName.ToLower() == companyName.ToLower())
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        return new DuplicateCheckDto
+        {
+            IsDuplicate = matches.Count > 0,
+            ExistingOutreaches = matches.Select(o => new DuplicateOutreachDto
+            {
+                Id = o.Id,
+                CompanyName = o.CompanyName,
+                Role = o.Role,
+                Status = o.Status,
+                SentAt = o.SentAt
+            }).ToList()
+        };
+    }
+
     private static OutreachDto MapToDto(Outreach outreach) => new()
     {
         Id = outreach.Id,

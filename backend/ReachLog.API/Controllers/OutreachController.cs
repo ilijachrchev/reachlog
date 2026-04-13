@@ -76,4 +76,14 @@ public class OutreachController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpGet("check-duplicate")]
+    public async Task<IActionResult> CheckDuplicate([FromQuery] string company)
+    {
+        if (string.IsNullOrWhiteSpace(company))
+            return BadRequest(new { message = "Company name is required." });
+
+        var result = await _outreachService.CheckDuplicateAsync(company, GetUserId());
+        return Ok(result);
+    }
 }

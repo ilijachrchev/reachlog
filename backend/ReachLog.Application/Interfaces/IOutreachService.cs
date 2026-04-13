@@ -9,4 +9,5 @@ public interface IOutreachService
     Task<OutreachDto> CreateAsync(CreateOutreachDto request, Guid userId);
     Task<OutreachDto> UpdateStatusAsync(Guid id, UpdateStatusDto request, Guid userId);
     Task DeleteAsync(Guid id, Guid userId);
+    Task<DuplicateCheckDto> CheckDuplicateAsync(string companyName, Guid userId);
 }
