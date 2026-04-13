@@ -5,13 +5,50 @@
       <span class="brand-name">ReachLog</span>
     </div>
     <nav class="topbar-nav">
-      <button class="nav-btn active" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
       <button class="nav-btn active-page">Kanban</button>
       <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
       <button class="nav-btn" (click)="goToCv()">CV</button>
       <button class="nav-btn accent" (click)="goToNew()">+ New</button>
     </nav>
   </header>
+
+  <!-- Nudges Panel -->
+  <div class="nudges-panel" *ngIf="nudges.length > 0">
+    <div class="nudges-bar" (click)="toggleNudges()">
+      <div class="nudges-bar-left">
+        <span class="nudges-dot"></span>
+        <span class="nudges-title">Attention needed</span>
+        <span class="nudges-count">{{ nudges.length }}</span>
+      </div>
+      <button class="nudges-toggle">
+        {{ nudgesExpanded ? '▲ Hide' : '▼ Show' }}
+      </button>
+    </div>
+
+    <div class="nudges-list" *ngIf="nudgesExpanded">
+      <div
+        *ngFor="let nudge of nudges"
+        class="nudge-item"
+        [class.nudge-noreply]="nudge.nudgeType === 'NoReply'"
+        [class.nudge-rejection]="nudge.nudgeType === 'RecentRejection'"
+      >
+        <div class="nudge-icon">
+          <svg *ngIf="nudge.nudgeType === 'NoReply'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <svg *ngIf="nudge.nudgeType === 'RecentRejection'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </div>
+        <p class="nudge-message">{{ nudge.message }}</p>
+        <span class="nudge-days">{{ nudge.daysSinceSent }}d</span>
+        <button class="nudge-dismiss" (click)="dismissNudge(nudge.outreachId)">✕</button>
+      </div>
+    </div>
+  </div>
 
   <div class="kanban-body">
     <div class="kanban-header">

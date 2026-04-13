@@ -421,3 +421,125 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.nudges-panel {
+  background: #111113;
+  border-bottom: 1px solid #2a2a30;
+}
+
+.nudges-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  transition: background 150ms;
+
+  &:hover { background: #18181c; }
+}
+
+.nudges-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nudges-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f5a623;
+  box-shadow: 0 0 6px rgba(245,166,35,0.5);
+  flex-shrink: 0;
+}
+
+.nudges-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c0c0cc;
+}
+
+.nudges-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(245,166,35,0.12);
+  color: #f5a623;
+  border: 1px solid rgba(245,166,35,0.2);
+}
+
+.nudges-toggle {
+  font-size: 0.72rem;
+  color: #55555f;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+
+  &:hover { color: #9090a0; }
+}
+
+.nudges-list {
+  padding: 0 1.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nudge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+
+  &.nudge-noreply {
+    background: rgba(245,166,35,0.06);
+    border-color: rgba(245,166,35,0.15);
+
+    .nudge-icon { color: #f5a623; }
+    .nudge-days { color: #f5a623; }
+  }
+
+  &.nudge-rejection {
+    background: rgba(91,108,249,0.06);
+    border-color: rgba(91,108,249,0.15);
+
+    .nudge-icon { color: #5b6cf9; }
+    .nudge-days { color: #5b6cf9; }
+  }
+}
+
+.nudge-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nudge-message {
+  font-size: 0.78rem;
+  color: #c0c0cc;
+  flex: 1;
+}
+
+.nudge-days {
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.nudge-dismiss {
+  background: transparent;
+  border: none;
+  color: #3a3a42;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  transition: color 150ms;
+  flex-shrink: 0;
+
+  &:hover { color: #9090a0; }
+}
