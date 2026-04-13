@@ -74,7 +74,7 @@ export class PasteInboxComponent {
       contactEmail: this.editEmail,
       role: this.editRole,
       channel: this.editChannel,
-      sentAt: this.editSentAt || null,
+      sentAt: this.editSentAt || new Date().toISOString(),
       notes: '',
       rawMessage: this.rawText
     }).subscribe({
