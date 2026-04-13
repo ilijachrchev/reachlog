@@ -21,10 +21,15 @@ public class CvService : ICvService
 
     public async Task<CvDto> UploadAsync(Stream fileStream, string fileName, string contentType, Guid userId)
     {
+        using var ms = new MemoryStream();
+        await fileStream.CopyToAsync(ms);
+        var fileBytes = ms.ToArray();
+        ms.Position = 0;
+
         var extractedText = contentType switch
         {
-            "application/pdf" => ExtractFromPdf(fileStream),
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ExtractFromDocx(fileStream),
+            "application/pdf" => ExtractFromPdf(ms),
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ExtractFromDocx(ms),
             _ => throw new InvalidOperationException("Unsupported file type. Please upload a PDF or Word document.")
         };
 
@@ -35,6 +40,8 @@ public class CvService : ICvService
             existing.ExtractedText = extractedText;
             existing.FileName = fileName;
             existing.UploadedAt = DateTime.UtcNow;
+            existing.FileBytes = fileBytes;
+            existing.ContentType = contentType;
         }
         else
         {
@@ -44,7 +51,9 @@ public class CvService : ICvService
                 UserId = userId,
                 ExtractedText = extractedText,
                 FileName = fileName,
-                UploadedAt = DateTime.UtcNow
+                UploadedAt = DateTime.UtcNow,
+                FileBytes = fileBytes,
+                ContentType = contentType
             };
             _db.UserCvs.Add(cv);
         }
@@ -56,7 +65,9 @@ public class CvService : ICvService
         {
             Id = saved.Id,
             FileName = saved.FileName,
-            UploadedAt = saved.UploadedAt
+            UploadedAt = saved.UploadedAt,
+            ExtractedText = saved.ExtractedText,
+            ContentType = saved.ContentType
         };
     }
 
@@ -69,8 +80,17 @@ public class CvService : ICvService
         {
             Id = cv.Id,
             FileName = cv.FileName,
-            UploadedAt = cv.UploadedAt
+            UploadedAt = cv.UploadedAt,
+            ExtractedText = cv.ExtractedText,
+            ContentType = cv.ContentType
         };
+    }
+
+    public async Task<(byte[] bytes, string contentType, string fileName)?> GetFileAsync(Guid userId)
+    {
+        var cv = await _db.UserCvs.FirstOrDefaultAsync(c => c.UserId == userId);
+        if (cv == null || cv.FileBytes == null || cv.ContentType == null) return null;
+        return (cv.FileBytes, cv.ContentType, cv.FileName);
     }
 
     private static string ExtractFromPdf(Stream stream)

@@ -6,6 +6,7 @@ export interface CvInfo {
   fileName: string;
   uploadedAt: string;
   characterCount: number;
+  contentType: string | null;
 }
 
 @Injectable({
@@ -24,5 +25,9 @@ export class CvService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<CvInfo>(this.apiUrl, formData);
+  }
+
+  getFileUrl(): string {
+    return `${this.apiUrl}/file`;
   }
 }

@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CvService, CvInfo } from '../../core/services/cv.service';
 import { ToastService } from '../../core/services/toast.service';
 
@@ -11,7 +13,7 @@ import { ToastService } from '../../core/services/toast.service';
   templateUrl: './cv-upload.html',
   styleUrl: './cv-upload.scss'
 })
-export class CvUploadComponent implements OnInit {
+export class CvUploadComponent implements OnInit, OnDestroy {
   cvInfo: CvInfo | null = null;
   loading = true;
   uploading = false;
@@ -19,17 +21,44 @@ export class CvUploadComponent implements OnInit {
   success: string | null = null;
   selectedFile: File | null = null;
   dragOver = false;
+  filePreviewUrl: SafeResourceUrl | null = null;
+  private rawPreviewUrl: string | null = null;
 
   constructor(
-     private cvService: CvService,
-     private router: Router,
-     private toastService: ToastService) {}
+    private cvService: CvService,
+    private router: Router,
+    private toastService: ToastService,
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     this.cvService.get().subscribe({
-      next: (data) => { this.cvInfo = data; this.loading = false; },
+      next: (data) => {
+        this.cvInfo = data;
+        this.loading = false;
+        this.loadPreview();
+      },
       error: () => { this.cvInfo = null; this.loading = false; }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.rawPreviewUrl) URL.revokeObjectURL(this.rawPreviewUrl);
+  }
+
+  private loadPreview(): void {
+    this.http.get(this.cvService.getFileUrl(), { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        if (this.rawPreviewUrl) URL.revokeObjectURL(this.rawPreviewUrl);
+        this.rawPreviewUrl = URL.createObjectURL(blob);
+        this.filePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.rawPreviewUrl);
+      }
+    });
+  }
+
+  isPdf(): boolean {
+    return this.cvInfo?.contentType === 'application/pdf';
   }
 
   onFileSelected(event: Event): void {
@@ -75,6 +104,7 @@ export class CvUploadComponent implements OnInit {
         this.uploading = false;
         this.toastService.success('CV uploaded successfully.');
         this.selectedFile = null;
+        this.loadPreview();
       },
       error: () => {
         this.toastService.error('Upload failed. Please try again.');

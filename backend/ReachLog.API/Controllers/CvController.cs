@@ -50,4 +50,16 @@ public class CvController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("file")]
+    public async Task<IActionResult> GetFile()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _cvService.GetFileAsync(userId);
+
+        if (result == null)
+            return NotFound(new { message = "No CV file stored." });
+
+        return File(result.Value.bytes, result.Value.contentType, result.Value.fileName);
+    }
 }

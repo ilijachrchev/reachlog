@@ -26,7 +26,6 @@
 
     <div *ngIf="!loading" class="cv-content">
 
-      <!-- Current CV info -->
       <div class="cv-card" *ngIf="cvInfo">
         <div class="cv-card-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -46,6 +45,13 @@
           </div>
         </div>
         <span class="cv-active-badge">Active</span>
+      </div>
+
+      <div class="cv-file-preview" *ngIf="filePreviewUrl">
+        <iframe *ngIf="isPdf()" [src]="filePreviewUrl" class="cv-preview-iframe"></iframe>
+        <div *ngIf="!isPdf()" class="cv-no-preview">
+          Preview not available for Word documents — re-upload as PDF to preview.
+        </div>
       </div>
 
       <div class="cv-empty-state" *ngIf="!cvInfo">
