@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ParseService } from '../../core/services/parse.service';
 import { OutreachService } from '../../core/services/outreach.service';
 import { ParseResult } from '../../core/models/outreach.model';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-paste-inbox',
@@ -30,7 +31,8 @@ export class PasteInboxComponent {
   constructor(
     private parseService: ParseService,
     private outreachService: OutreachService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   onPaste(event: ClipboardEvent) {
@@ -77,9 +79,12 @@ export class PasteInboxComponent {
       notes: '',
       rawMessage: this.rawText
     }).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.toastService.success('Outreach saved successfully!');
+        setTimeout(() => this.router.navigate(['/kanban']), 800);
+      },
       error: () => {
-        this.error = 'Failed to save. Try again.';
+        this.toastService.error('Failed to save. Try again.');
         this.isSaving = false;
       }
     });
