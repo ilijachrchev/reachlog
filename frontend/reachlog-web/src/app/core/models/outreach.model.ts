@@ -9,6 +9,8 @@ export interface Outreach {
   isOpened: boolean;
   sentAt: string;
   createdAt: string;
+  cvMatchScore: number | null;
+  missingSkills: string[] | null;
 }
 
 export interface CreateOutreachRequest {
