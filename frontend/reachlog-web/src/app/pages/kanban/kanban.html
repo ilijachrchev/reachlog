@@ -72,6 +72,20 @@
               </div>
 
               <p class="card-contact" *ngIf="o.contactName">{{ o.contactName }}</p>
+
+              <div class="card-actions">
+                <button
+                  class="score-btn"
+                  [class.scoring]="isScoring(o.id)"
+                  [disabled]="isScoring(o.id)"
+                  (click)="scoreOutreach($event, o)"
+                >
+                  <span *ngIf="!isScoring(o.id)">
+                    {{ o.cvMatchScore !== null ? 'Re-score' : 'Score' }}
+                  </span>
+                  <span *ngIf="isScoring(o.id)" class="score-spinner"></span>
+                </button>
+              </div>
             </div>
 
             <div *cdkDragPlaceholder class="drag-placeholder"></div>
