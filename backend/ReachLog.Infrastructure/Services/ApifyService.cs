@@ -20,7 +20,7 @@ public class ApifyService : IApifyService
         _logger = logger;
     }
 
-    public async Task<List<ScrapedJobDto>> ScrapeLinkedInAsync(string keywords, string location, int wave, Guid userId)
+    public async Task<List<ScrapedJobDto>> ScrapeLinkedInAsync(string keywords, string location, int wave)
     {
         if (string.IsNullOrWhiteSpace(_apiToken))
         {
@@ -61,7 +61,7 @@ public class ApifyService : IApifyService
             var results = new List<ScrapedJobDto>();
             foreach (var item in items.RootElement.EnumerateArray())
             {
-                var dto = MapToDto(item, wave, userId);
+                var dto = MapToDto(item, wave);
                 if (dto != null)
                     results.Add(dto);
             }
@@ -75,7 +75,7 @@ public class ApifyService : IApifyService
         }
     }
 
-    public async Task<List<ScrapedJobDto>> ScrapeIndeedAsync(string keywords, string location, int wave, Guid userId)
+    public async Task<List<ScrapedJobDto>> ScrapeIndeedAsync(string keywords, string location, int wave)
     {
         if (string.IsNullOrWhiteSpace(_apiToken))
         {
@@ -117,7 +117,7 @@ public class ApifyService : IApifyService
             var results = new List<ScrapedJobDto>();
             foreach (var item in items.RootElement.EnumerateArray())
             {
-                var dto = MapIndeedToDto(item, wave, userId);
+                var dto = MapIndeedToDto(item, wave);
                 if (dto != null)
                     results.Add(dto);
             }
@@ -131,7 +131,7 @@ public class ApifyService : IApifyService
         }
     }
 
-    private static ScrapedJobDto? MapIndeedToDto(JsonElement item, int wave, Guid userId)
+    private static ScrapedJobDto? MapIndeedToDto(JsonElement item, int wave)
     {
         var title = GetString(item, "positionName") ?? string.Empty;
         var company = GetString(item, "company") ?? string.Empty;
@@ -150,7 +150,6 @@ public class ApifyService : IApifyService
         return new ScrapedJobDto
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
             Title = title,
             Company = company,
             Location = location,
@@ -166,7 +165,7 @@ public class ApifyService : IApifyService
         };
     }
 
-    private static ScrapedJobDto? MapToDto(JsonElement item, int wave, Guid userId)
+    private static ScrapedJobDto? MapToDto(JsonElement item, int wave)
     {
         var title = GetString(item, "title") ?? GetString(item, "position") ?? string.Empty;
         var company = GetString(item, "company") ?? GetString(item, "companyName") ?? string.Empty;
@@ -185,7 +184,6 @@ public class ApifyService : IApifyService
         return new ScrapedJobDto
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
             Title = title,
             Company = company,
             Location = location,

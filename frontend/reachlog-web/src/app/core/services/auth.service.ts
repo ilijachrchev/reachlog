@@ -38,6 +38,22 @@ export class AuthService {
     return !!this.getToken();
   }
 
+  isAdmin(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    const payload = this.decodeToken(token);
+    return payload?.['role'] === 'Admin';
+  }
+
+  private decodeToken(token: string): Record<string, unknown> | null {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  }
+
   private saveToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
   }

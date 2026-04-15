@@ -34,6 +34,7 @@ public class AuthService : IAuthService
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = "User",
             CreatedAt = DateTime.UtcNow
         };
 
@@ -72,7 +73,8 @@ public class AuthService : IAuthService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("role", user.Role)
         };
 
         var token = new JwtSecurityToken(

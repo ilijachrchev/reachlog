@@ -1,0 +1,64 @@
+<div class="account-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToPrepare()">Prepare</button>
+      <button class="nav-btn" (click)="goToJobs()">Jobs</button>
+      <button class="nav-btn" (click)="goToCv()">CV</button>
+      <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn active-page">Account</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <main class="account-body">
+    <div class="account-header">
+      <h1 class="account-title">Account</h1>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-bar"></div>
+    </div>
+
+    <div *ngIf="!loading" class="account-sections">
+      <section class="account-section">
+        <h2 class="section-title">Job Preferences</h2>
+        <p class="section-sub">Used to personalise your job feed and scrape results.</p>
+
+        <div class="pref-fields">
+          <div class="pref-field">
+            <label class="pref-label">Country</label>
+            <input class="pref-input" [(ngModel)]="preference.country" placeholder="e.g. Slovenia" />
+          </div>
+          <div class="pref-field">
+            <label class="pref-label">City</label>
+            <input class="pref-input" [(ngModel)]="preference.city" placeholder="e.g. Koper" />
+          </div>
+          <div class="pref-field">
+            <label class="pref-label">Job type</label>
+            <select class="pref-select" [(ngModel)]="preference.jobType">
+              <option value="Internship">Internship</option>
+              <option value="Junior">Junior</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+          <div class="pref-field">
+            <label class="pref-label">Keywords</label>
+            <input class="pref-input" [(ngModel)]="preference.keywords" placeholder=".NET Angular internship" />
+          </div>
+        </div>
+
+        <button class="save-btn" [disabled]="saving" (click)="save()">
+          <span *ngIf="!saving">Save preferences</span>
+          <span *ngIf="saving">Saving...</span>
+        </button>
+      </section>
+    </div>
+  </main>
+</div>

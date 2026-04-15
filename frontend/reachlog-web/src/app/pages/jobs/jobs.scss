@@ -82,6 +82,92 @@
   gap: 1.25rem;
 }
 
+.pref-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pref-card {
+  background: #18181c;
+  border: 1px solid #333338;
+  border-radius: 14px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pref-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #f0f0f2;
+  letter-spacing: -0.01em;
+}
+
+.pref-sub {
+  font-size: 0.8125rem;
+  color: #606068;
+  margin-top: -0.75rem;
+}
+
+.pref-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.pref-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pref-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9090a0;
+}
+
+.pref-input,
+.pref-select {
+  background: #111113;
+  border: 1px solid #333338;
+  border-radius: 7px;
+  color: #f0f0f2;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 150ms;
+
+  &:focus { border-color: #5b6cf9; }
+
+  option { background: #18181c; }
+}
+
+.pref-save-btn {
+  padding: 0.55rem 1rem;
+  background: #5b6cf9;
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, opacity 150ms;
+
+  &:hover:not(:disabled) { background: #6b7dff; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
 .jobs-topbar {
   display: flex;
   align-items: center;
@@ -95,6 +181,12 @@
   gap: 0.75rem;
 }
 
+.jobs-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .jobs-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -104,6 +196,11 @@
 .jobs-count {
   font-size: 0.78rem;
   color: #55555f;
+}
+
+.jobs-scraped-at {
+  font-size: 0.72rem;
+  color: #3a3a42;
 }
 
 .btn-run {
@@ -120,6 +217,23 @@
   flex-shrink: 0;
 
   &:hover:not(:disabled) { background: #6b7dff; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-request {
+  padding: 0.45rem 1rem;
+  background: #25252b;
+  border: 1px solid #444450;
+  border-radius: 7px;
+  color: #c0c0cc;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) { background: #2a2a30; border-color: #5b6cf9; color: #f0f0f2; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 

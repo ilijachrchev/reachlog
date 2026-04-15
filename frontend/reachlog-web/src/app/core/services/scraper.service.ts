@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 export interface ScrapedJob {
   id: string;
-  userId: string;
   title: string;
   company: string;
   location: string;
@@ -26,17 +25,17 @@ export interface ScrapedJob {
   missingSkills: string[];
 }
 
-export interface ScraperStatus {
-  isRunning: boolean;
-  wave: number;
-  totalFound: number;
-  currentBoard: string | null;
-  message: string | null;
+export interface ScraperInfo {
+  lastScrapedAt: string | null;
+  totalJobsInFeed: number;
+  pendingRequests: number;
 }
 
-export interface ScrapeRequest {
-  countries?: string[];
-  keywords?: string;
+export interface UserJobPreference {
+  country: string;
+  city: string;
+  jobType: string;
+  keywords: string;
 }
 
 @Injectable({
@@ -47,15 +46,14 @@ export class ScraperService {
 
   constructor(private http: HttpClient) {}
 
-  runScraper(request?: ScrapeRequest): Observable<{ totalFound: number }> {
-    return this.http.post<{ totalFound: number }>(`${this.apiUrl}/run`, request ?? {});
+  runScraper(): Observable<{ totalFound: number }> {
+    return this.http.post<{ totalFound: number }>(`${this.apiUrl}/run`, {});
   }
 
-  getJobs(filters?: { jobType?: string; remoteOnly?: boolean; minScore?: number }): Observable<ScrapedJob[]> {
+  getJobs(filters?: { jobType?: string; remoteOnly?: boolean }): Observable<ScrapedJob[]> {
     const params: Record<string, string> = {};
     if (filters?.jobType) params['jobType'] = filters.jobType;
     if (filters?.remoteOnly) params['remoteOnly'] = 'true';
-    if (filters?.minScore !== undefined && filters.minScore !== null) params['minScore'] = String(filters.minScore);
     return this.http.get<ScrapedJob[]>(`${this.apiUrl}/jobs`, { params });
   }
 
@@ -63,7 +61,19 @@ export class ScraperService {
     return this.http.post<ScrapedJob>(`${this.apiUrl}/jobs/${jobId}/import`, {});
   }
 
-  getStatus(): Observable<ScraperStatus> {
-    return this.http.get<ScraperStatus>(`${this.apiUrl}/status`);
+  getInfo(): Observable<ScraperInfo> {
+    return this.http.get<ScraperInfo>(`${this.apiUrl}/info`);
+  }
+
+  getPreference(): Observable<UserJobPreference | null> {
+    return this.http.get<UserJobPreference | null>(`${this.apiUrl}/preference`);
+  }
+
+  savePreference(pref: UserJobPreference): Observable<UserJobPreference> {
+    return this.http.post<UserJobPreference>(`${this.apiUrl}/preference`, pref);
+  }
+
+  requestScrape(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/request`, {});
   }
 }

@@ -3,8 +3,6 @@ namespace ReachLog.Domain.Entities;
 public class ScrapedJob
 {
     public Guid Id { get; set; }
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public string Company { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
@@ -20,8 +18,4 @@ public class ScrapedJob
     public int Wave { get; set; }
     public DateTime? PostedAt { get; set; }
     public DateTime ScrapedAt { get; set; }
-    public bool IsImported { get; set; }
-    public Guid? ImportedOutreachId { get; set; }
-    public int? MatchScore { get; set; }
-    public string? MissingSkills { get; set; }
 }
