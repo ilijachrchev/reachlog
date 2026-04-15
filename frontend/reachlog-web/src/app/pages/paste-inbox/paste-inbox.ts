@@ -99,6 +99,7 @@ export class PasteInboxComponent {
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToKanban(): void { this.router.navigate(['/kanban']); }
   goToPrepare(): void { this.router.navigate(['/prepare']); }
+  goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }

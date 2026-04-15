@@ -50,6 +50,7 @@ export class PrepareComponent {
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToKanban(): void { this.router.navigate(['/kanban']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
+  goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }

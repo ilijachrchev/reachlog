@@ -8,6 +8,6 @@ public class User
     public string FullName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    //one to many relationship between User and Outreach
-    public ICollection<Outreach> Outreaches { get; set; } = new List<Outreach>(); 
+    public ICollection<Outreach> Outreaches { get; set; } = new List<Outreach>();
+    public ICollection<ScrapedJob> ScrapedJobs { get; set; } = new List<ScrapedJob>();
 }

@@ -1,0 +1,142 @@
+<div class="jobs-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToPrepare()">Prepare</button>
+      <button class="nav-btn active-page">Jobs</button>
+      <button class="nav-btn" (click)="goToCv()">CV</button>
+      <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <main class="jobs-body">
+    <div class="jobs-layout">
+
+      <aside class="jobs-sidebar">
+        <div class="sidebar-section">
+          <span class="sidebar-label">Job Type</span>
+          <div class="type-pills">
+            <button class="type-pill" [class.active]="!filters.jobType" (click)="filters.jobType = ''; applyFilters()">All</button>
+            <button class="type-pill" [class.active]="filters.jobType === 'Internship'" (click)="filters.jobType = 'Internship'; applyFilters()">Internship</button>
+            <button class="type-pill" [class.active]="filters.jobType === 'Junior'" (click)="filters.jobType = 'Junior'; applyFilters()">Junior</button>
+            <button class="type-pill" [class.active]="filters.jobType === 'Other'" (click)="filters.jobType = 'Other'; applyFilters()">Other</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <label class="remote-toggle">
+            <input type="checkbox" [(ngModel)]="filters.remoteOnly" (change)="applyFilters()" />
+            <span class="toggle-label">Remote only</span>
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <span class="sidebar-label">Min score</span>
+          <input
+            class="score-input"
+            type="number"
+            [(ngModel)]="filters.minScore"
+            placeholder="0–100"
+            min="0"
+            max="100"
+          />
+        </div>
+
+        <button class="btn-apply" (click)="applyFilters()">Apply filters</button>
+
+        <button class="btn-run" [disabled]="running" (click)="runScraper()">
+          <span *ngIf="!running">Run scraper</span>
+          <span *ngIf="running" class="btn-spinner-wrap">
+            <span class="btn-spinner"></span>
+            Scraping...
+          </span>
+        </button>
+      </aside>
+
+      <section class="jobs-main">
+        <div class="jobs-header">
+          <h1 class="jobs-title">Job Feed</h1>
+          <p class="jobs-sub">{{ jobs.length }} jobs scraped</p>
+        </div>
+
+        <div *ngIf="loading" class="loading-state">
+          <div class="loading-bar"></div>
+        </div>
+
+        <div *ngIf="!loading && jobs.length === 0" class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3a3a42" stroke-width="1.25">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            <line x1="12" y1="12" x2="12" y2="16"/>
+            <line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+          <p class="empty-label">No jobs scraped yet — run the scraper to find opportunities</p>
+        </div>
+
+        <div *ngIf="!loading && jobs.length > 0" class="job-list">
+          <div
+            *ngFor="let job of jobs"
+            class="job-card"
+            [class.job-imported]="job.isImported"
+          >
+            <div class="job-card-main">
+              <div class="job-card-top">
+                <div class="job-title-row">
+                  <span class="job-title">{{ job.title }}</span>
+                  <span class="score-badge" [class]="getScoreBadgeClass(job.matchScore)">
+                    {{ getScoreLabel(job.matchScore) }}
+                  </span>
+                </div>
+                <span class="job-company">{{ job.company }}</span>
+              </div>
+
+              <div class="job-card-meta">
+                <span class="job-location">
+                  {{ getCountryFlag(job.country) }}{{ job.location }}
+                </span>
+                <div class="job-badges">
+                  <span class="board-badge" [class]="getBoardBadgeClass(job.jobBoard)">{{ job.jobBoard }}</span>
+                  <span *ngIf="job.jobType" class="type-badge" [class]="getTypeBadgeClass(job.jobType)">{{ job.jobType }}</span>
+                  <span *ngIf="job.isRemote" class="remote-badge">Remote</span>
+                </div>
+              </div>
+
+              <div class="job-card-footer">
+                <span class="job-date">{{ getDaysSince(job.postedAt) }}</span>
+                <div class="job-actions">
+                  <button
+                    *ngIf="job.description"
+                    class="btn-expand"
+                    (click)="toggleExpand(job.id)"
+                  >
+                    {{ expandedJobId === job.id ? '▲ Hide' : '▼ Description' }}
+                  </button>
+                  <button
+                    class="btn-import"
+                    [disabled]="job.isImported || isImporting(job.id)"
+                    (click)="importJob(job)"
+                  >
+                    <span *ngIf="!isImporting(job.id)">{{ job.isImported ? 'Imported' : 'Import to Kanban' }}</span>
+                    <span *ngIf="isImporting(job.id)" class="btn-spinner-sm"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="expandedJobId === job.id && job.description" class="job-description">
+              <pre class="job-desc-text">{{ job.description }}</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>

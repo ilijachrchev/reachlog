@@ -214,6 +214,7 @@ export class KanbanComponent implements OnInit {
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
   goToPrepare(): void { this.router.navigate(['/prepare']); }
+  goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
 }

@@ -22,6 +22,8 @@ builder.Services.AddScoped<IScoreService, ScoreService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INudgeService, NudgeService>();
 builder.Services.AddScoped<IPrepareService, PrepareService>();
+builder.Services.AddHttpClient<IApifyService, ApifyService>();
+builder.Services.AddScoped<IScraperService, ScraperService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
