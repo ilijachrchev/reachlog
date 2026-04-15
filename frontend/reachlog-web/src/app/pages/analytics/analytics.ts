@@ -97,5 +97,6 @@ export class AnalyticsComponent implements OnInit {
   goToPrepare(): void { this.router.navigate(['/prepare']); }
   goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
+  goToAccount(): void { this.router.navigate(['/account']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
 }

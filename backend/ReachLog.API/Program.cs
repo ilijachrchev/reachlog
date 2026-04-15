@@ -23,6 +23,7 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INudgeService, NudgeService>();
 builder.Services.AddScoped<IPrepareService, PrepareService>();
 builder.Services.AddHttpClient<IApifyService, ApifyService>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScraperService, ScraperService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.AddPolicy("AllowAngular", policy =>
         {
-            policy.SetIsOriginAllowed(origin => 
+            policy.SetIsOriginAllowed(origin =>
                 origin.StartsWith("http://localhost") ||
                 origin.StartsWith("chrome-extension://"))
                   .AllowAnyMethod()
@@ -54,6 +55,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+
+// To make a user admin: UPDATE "Users" SET "Role" = 'Admin' WHERE "Email" = 'your@email.com'
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");

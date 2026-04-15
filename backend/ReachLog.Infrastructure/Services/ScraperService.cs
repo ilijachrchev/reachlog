@@ -14,85 +14,77 @@ public class ScraperService : IScraperService
 {
     private readonly AppDbContext _db;
     private readonly IApifyService _apifyService;
-    private readonly ICvService _cvService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _claudeApiKey;
     private readonly string _claudeModel;
     private readonly ILogger<ScraperService> _logger;
 
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     public ScraperService(
         AppDbContext db,
         IApifyService apifyService,
-        ICvService cvService,
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
         ILogger<ScraperService> logger)
     {
         _db = db;
         _apifyService = apifyService;
-        _cvService = cvService;
         _httpClientFactory = httpClientFactory;
         _claudeApiKey = configuration["Claude:ApiKey"] ?? string.Empty;
         _claudeModel = configuration["Claude:Model"] ?? string.Empty;
         _logger = logger;
     }
 
-    public async Task RunAsync(ScrapeRequestDto request, Guid userId)
+    public async Task RunAsync(Guid adminUserId)
     {
-        var keywords = request.Keywords ?? ".NET Angular internship";
+        var preferences = await _db.UserJobPreferences.ToListAsync();
+
+        var keywords = ".NET Angular internship";
+        if (preferences.Count > 0)
+        {
+            var tokens = preferences
+                .Select(p => p.Keywords)
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .SelectMany(k => k.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (tokens.Count > 0)
+                keywords = string.Join(" ", tokens);
+        }
+
+        var wave1Cities = preferences.Count > 0
+            ? preferences.Select(p => p.City).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList()
+            : ["Ljubljana", "Koper", "Maribor"];
+
         var allResults = new List<ScrapedJobDto>();
 
-        if (request.Countries?.Count > 0)
+        foreach (var city in wave1Cities)
         {
-            foreach (var country in request.Countries)
+            allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, city, 1));
+            allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, city, 1));
+        }
+
+        if (allResults.Count < 20)
+        {
+            string[] wave2Locations = ["Vienna", "Milan", "Trieste", "Zagreb", "Munich", "Berlin"];
+            foreach (var loc in wave2Locations)
             {
-                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, country, 1, userId);
-                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, country, 1, userId);
-                allResults.AddRange(linkedIn);
-                allResults.AddRange(indeed);
+                allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, loc, 2));
+                allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, loc, 2));
             }
         }
-        else
+
+        if (allResults.Count < 50)
         {
-            var wave1Locations = new[] { "Ljubljana", "Koper", "Maribor" };
-            foreach (var loc in wave1Locations)
-            {
-                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 1, userId);
-                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, loc, 1, userId);
-                allResults.AddRange(linkedIn);
-                allResults.AddRange(indeed);
-            }
-
-            if (allResults.Count < 20)
-            {
-                var wave2Locations = new[] { "Vienna", "Milan", "Trieste", "Zagreb", "Munich", "Berlin" };
-                foreach (var loc in wave2Locations)
-                {
-                    var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 2, userId);
-                    var indeed = await _apifyService.ScrapeIndeedAsync(keywords, loc, 2, userId);
-                    allResults.AddRange(linkedIn);
-                    allResults.AddRange(indeed);
-                }
-            }
-
-            if (allResults.Count < 50)
-            {
-                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, "remote Europe", 3, userId);
-                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, "remote Europe", 3, userId);
-                allResults.AddRange(linkedIn);
-                allResults.AddRange(indeed);
-            }
-
-            {
-                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, "remote", 4, userId);
-                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, "remote", 4, userId);
-                allResults.AddRange(linkedIn);
-                allResults.AddRange(indeed);
-            }
+            allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, "remote Europe", 3));
+            allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, "remote Europe", 3));
         }
+
+        allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, "remote", 4));
+        allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, "remote", 4));
 
         var existingUrls = await _db.ScrapedJobs
-            .Where(j => j.UserId == userId)
             .Select(j => j.ExternalUrl)
             .ToHashSetAsync();
 
@@ -102,81 +94,113 @@ public class ScraperService : IScraperService
             .Select(g => g.First())
             .ToList();
 
-        if (newJobs.Count == 0) return;
-
-        var entities = newJobs.Select(dto => new ScrapedJob
+        if (newJobs.Count > 0)
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            Title = dto.Title,
-            Company = dto.Company,
-            Location = dto.Location,
-            Country = dto.Country,
-            IsRemote = dto.IsRemote,
-            JobBoard = dto.JobBoard,
-            ExternalUrl = dto.ExternalUrl,
-            Description = dto.Description,
-            SalaryMin = dto.SalaryMin,
-            SalaryMax = dto.SalaryMax,
-            Currency = dto.Currency,
-            JobType = dto.JobType,
-            Wave = dto.Wave,
-            PostedAt = dto.PostedAt,
-            ScrapedAt = dto.ScrapedAt,
-            IsImported = false
-        }).ToList();
-
-        _db.ScrapedJobs.AddRange(entities);
-        await _db.SaveChangesAsync();
-
-        var cv = await _cvService.GetAsync(userId);
-        if (cv != null && !string.IsNullOrWhiteSpace(_claudeApiKey))
-        {
-            foreach (var entity in entities)
+            var entities = newJobs.Select(dto => new ScrapedJob
             {
-                if (string.IsNullOrWhiteSpace(entity.Description)) continue;
+                Id = Guid.NewGuid(),
+                Title = dto.Title,
+                Company = dto.Company,
+                Location = dto.Location,
+                Country = dto.Country,
+                IsRemote = dto.IsRemote,
+                JobBoard = dto.JobBoard,
+                ExternalUrl = dto.ExternalUrl,
+                Description = dto.Description,
+                SalaryMin = dto.SalaryMin,
+                SalaryMax = dto.SalaryMax,
+                Currency = dto.Currency,
+                JobType = dto.JobType,
+                Wave = dto.Wave,
+                PostedAt = dto.PostedAt,
+                ScrapedAt = dto.ScrapedAt
+            }).ToList();
 
-                try
+            _db.ScrapedJobs.AddRange(entities);
+            await _db.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(_claudeApiKey))
+            {
+                var userCvs = await _db.UserCvs.ToListAsync();
+                foreach (var userCv in userCvs)
                 {
-                    var (score, missing) = await ScoreJobAsync(cv.ExtractedText, entity.Title, entity.Company, entity.Description!);
-                    entity.MatchScore = score;
-                    entity.MissingSkills = JsonSerializer.Serialize(missing);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Auto-scoring failed for job {JobId}.", entity.Id);
+                    foreach (var entity in entities)
+                    {
+                        if (string.IsNullOrWhiteSpace(entity.Description)) continue;
+
+                        var interaction = await _db.UserJobInteractions
+                            .FirstOrDefaultAsync(i => i.UserId == userCv.UserId && i.ScrapedJobId == entity.Id);
+
+                        if (interaction == null)
+                        {
+                            interaction = new UserJobInteraction
+                            {
+                                Id = Guid.NewGuid(),
+                                UserId = userCv.UserId,
+                                ScrapedJobId = entity.Id,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _db.UserJobInteractions.Add(interaction);
+                        }
+
+                        try
+                        {
+                            var (score, missing) = await ScoreJobAsync(userCv.ExtractedText, entity.Title, entity.Company, entity.Description!);
+                            interaction.MatchScore = score;
+                            interaction.MissingSkills = JsonSerializer.Serialize(missing);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Auto-scoring failed for job {JobId}.", entity.Id);
+                        }
+                    }
+                    await _db.SaveChangesAsync();
                 }
             }
-
-            await _db.SaveChangesAsync();
         }
+
+        var settings = await _db.ScraperSettings.FirstOrDefaultAsync();
+        if (settings == null)
+        {
+            settings = new ScraperSettings { Id = Guid.NewGuid() };
+            _db.ScraperSettings.Add(settings);
+        }
+        settings.LastScrapedAt = DateTime.UtcNow;
+        settings.TotalJobsInFeed = await _db.ScrapedJobs.CountAsync();
+
+        var pendingRequests = await _db.ScrapeRequests.Where(r => !r.IsHandled).ToListAsync();
+        foreach (var req in pendingRequests)
+        {
+            req.IsHandled = true;
+            req.HandledAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
     }
 
-    public async Task<List<ScrapedJobDto>> GetJobsAsync(Guid userId, string? jobType, bool? remoteOnly, int? minScore)
+    public async Task<List<ScrapedJobDto>> GetJobsAsync(Guid userId, string? jobType, bool? remoteOnly)
     {
-        var query = _db.ScrapedJobs.Where(j => j.UserId == userId);
-
-        if (!string.IsNullOrWhiteSpace(jobType))
-            query = query.Where(j => j.JobType == jobType);
-
-        if (remoteOnly == true)
-            query = query.Where(j => j.IsRemote);
-
-        if (minScore.HasValue)
-            query = query.Where(j => j.MatchScore >= minScore);
-
-        var jobs = await query
-            .OrderByDescending(j => j.MatchScore)
-            .ThenByDescending(j => j.ScrapedAt)
+        var jobs = await _db.ScrapedJobs
+            .Where(j =>
+                (string.IsNullOrWhiteSpace(jobType) || j.JobType == jobType) &&
+                (remoteOnly != true || j.IsRemote))
             .ToListAsync();
 
-        return jobs.Select(MapToDto).ToList();
+        var interactions = await _db.UserJobInteractions
+            .Where(i => i.UserId == userId)
+            .ToDictionaryAsync(i => i.ScrapedJobId);
+
+        return jobs
+            .OrderBy(j => j.Wave)
+            .ThenByDescending(j => interactions.TryGetValue(j.Id, out var i) ? i.MatchScore : null)
+            .Select(j => MapToDto(j, interactions.TryGetValue(j.Id, out var i) ? i : null))
+            .ToList();
     }
 
     public async Task<ScrapedJobDto> ImportJobAsync(Guid jobId, Guid userId)
     {
         var job = await _db.ScrapedJobs
-            .FirstOrDefaultAsync(j => j.Id == jobId && j.UserId == userId)
+            .FirstOrDefaultAsync(j => j.Id == jobId)
             ?? throw new KeyNotFoundException("Job not found.");
 
         var outreach = new Outreach
@@ -196,22 +220,131 @@ public class ScraperService : IScraperService
         };
 
         _db.Outreaches.Add(outreach);
-        job.IsImported = true;
-        job.ImportedOutreachId = outreach.Id;
+
+        var interaction = await _db.UserJobInteractions
+            .FirstOrDefaultAsync(i => i.UserId == userId && i.ScrapedJobId == jobId);
+
+        if (interaction == null)
+        {
+            interaction = new UserJobInteraction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ScrapedJobId = jobId,
+                IsImported = true,
+                ImportedOutreachId = outreach.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.UserJobInteractions.Add(interaction);
+        }
+        else
+        {
+            interaction.IsImported = true;
+            interaction.ImportedOutreachId = outreach.Id;
+        }
 
         await _db.SaveChangesAsync();
 
-        return MapToDto(job);
+        return MapToDto(job, interaction);
     }
 
-    public Task<ScraperStatusDto> GetStatusAsync(Guid userId)
+    public async Task<ScraperInfoDto> GetInfoAsync()
     {
-        return Task.FromResult(new ScraperStatusDto
+        var settings = await _db.ScraperSettings.FirstOrDefaultAsync();
+        if (settings == null)
         {
-            IsRunning = false,
-            Wave = 0,
-            TotalFound = 0
-        });
+            settings = new ScraperSettings { Id = Guid.NewGuid() };
+            _db.ScraperSettings.Add(settings);
+            await _db.SaveChangesAsync();
+        }
+
+        var pendingRequests = await _db.ScrapeRequests.CountAsync(r => !r.IsHandled);
+
+        return new ScraperInfoDto
+        {
+            LastScrapedAt = settings.LastScrapedAt,
+            TotalJobsInFeed = settings.TotalJobsInFeed,
+            PendingRequests = pendingRequests
+        };
+    }
+
+    public async Task<UserJobPreferenceDto?> GetPreferenceAsync(Guid userId)
+    {
+        var pref = await _db.UserJobPreferences.FirstOrDefaultAsync(p => p.UserId == userId);
+        if (pref == null) return null;
+
+        return new UserJobPreferenceDto
+        {
+            Country = pref.Country,
+            City = pref.City,
+            JobType = pref.JobType,
+            Keywords = pref.Keywords
+        };
+    }
+
+    public async Task<UserJobPreferenceDto> SavePreferenceAsync(UserJobPreferenceDto dto, Guid userId)
+    {
+        var pref = await _db.UserJobPreferences.FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (pref == null)
+        {
+            pref = new UserJobPreference
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.UserJobPreferences.Add(pref);
+        }
+
+        pref.Country = dto.Country;
+        pref.City = dto.City;
+        pref.JobType = dto.JobType;
+        pref.Keywords = dto.Keywords;
+        pref.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return new UserJobPreferenceDto
+        {
+            Country = pref.Country,
+            City = pref.City,
+            JobType = pref.JobType,
+            Keywords = pref.Keywords
+        };
+    }
+
+    public async Task RequestScrapeAsync(Guid userId)
+    {
+        var request = new ScrapeRequest
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            RequestedAt = DateTime.UtcNow,
+            IsHandled = false
+        };
+
+        _db.ScrapeRequests.Add(request);
+        await _db.SaveChangesAsync();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        _logger.LogWarning("Scrape requested by user {Email} at {RequestedAt}. Check admin panel to handle.",
+            user?.Email ?? userId.ToString(), request.RequestedAt);
+    }
+
+    public async Task<List<ScrapeRequestDto>> GetPendingRequestsAsync()
+    {
+        return await _db.ScrapeRequests
+            .Where(r => !r.IsHandled)
+            .Include(r => r.User)
+            .Select(r => new ScrapeRequestDto
+            {
+                Id = r.Id,
+                UserEmail = r.User.Email,
+                RequestedAt = r.RequestedAt,
+                IsHandled = r.IsHandled
+            })
+            .ToListAsync();
     }
 
     private async Task<(int score, List<string> missing)> ScoreJobAsync(
@@ -260,31 +393,27 @@ public class ScraperService : IScraperService
         content = content.Trim();
         if (content.StartsWith("```"))
         {
-            content = content.Substring(content.IndexOf('\n') + 1);
-            content = content.Substring(0, content.LastIndexOf("```")).Trim();
+            content = content[(content.IndexOf('\n') + 1)..];
+            content = content[..content.LastIndexOf("```")].Trim();
         }
 
-        var result = JsonSerializer.Deserialize<ScoreResultInternal>(content, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
+        var result = JsonSerializer.Deserialize<ScoreResultInternal>(content, _jsonOptions);
 
         return (result?.MatchScore ?? 0, result?.MissingSkills ?? []);
     }
 
-    private static ScrapedJobDto MapToDto(ScrapedJob job)
+    private static ScrapedJobDto MapToDto(ScrapedJob job, UserJobInteraction? interaction)
     {
         List<string> missingSkills = [];
-        if (!string.IsNullOrWhiteSpace(job.MissingSkills))
+        if (!string.IsNullOrWhiteSpace(interaction?.MissingSkills))
         {
-            try { missingSkills = JsonSerializer.Deserialize<List<string>>(job.MissingSkills) ?? []; }
+            try { missingSkills = JsonSerializer.Deserialize<List<string>>(interaction.MissingSkills) ?? []; }
             catch { }
         }
 
         return new ScrapedJobDto
         {
             Id = job.Id,
-            UserId = job.UserId,
             Title = job.Title,
             Company = job.Company,
             Location = job.Location,
@@ -300,9 +429,9 @@ public class ScraperService : IScraperService
             Wave = job.Wave,
             PostedAt = job.PostedAt,
             ScrapedAt = job.ScrapedAt,
-            IsImported = job.IsImported,
-            ImportedOutreachId = job.ImportedOutreachId,
-            MatchScore = job.MatchScore,
+            IsImported = interaction?.IsImported ?? false,
+            ImportedOutreachId = interaction?.ImportedOutreachId,
+            MatchScore = interaction?.MatchScore,
             MissingSkills = missingSkills
         };
     }

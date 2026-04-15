@@ -89,4 +89,5 @@ export class EditOutreachComponent implements OnInit {
   goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
+  goToAccount(): void { this.router.navigate(['/account']); }
 }

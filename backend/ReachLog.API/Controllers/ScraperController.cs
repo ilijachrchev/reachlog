@@ -21,21 +21,25 @@ public class ScraperController : ControllerBase
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    private string? GetUserRole() =>
+        User.FindFirstValue("role");
+
     [HttpPost("run")]
-    public async Task<IActionResult> Run([FromBody] ScrapeRequestDto request)
+    public async Task<IActionResult> Run()
     {
-        await _scraperService.RunAsync(request, GetUserId());
-        var jobs = await _scraperService.GetJobsAsync(GetUserId(), null, null, null);
-        return Ok(new { totalFound = jobs.Count });
+        if (GetUserRole() != "Admin")
+            return Forbid();
+        await _scraperService.RunAsync(GetUserId());
+        var info = await _scraperService.GetInfoAsync();
+        return Ok(new { totalFound = info.TotalJobsInFeed });
     }
 
     [HttpGet("jobs")]
     public async Task<IActionResult> GetJobs(
         [FromQuery] string? jobType,
-        [FromQuery] bool? remoteOnly,
-        [FromQuery] int? minScore)
+        [FromQuery] bool? remoteOnly)
     {
-        var result = await _scraperService.GetJobsAsync(GetUserId(), jobType, remoteOnly, minScore);
+        var result = await _scraperService.GetJobsAsync(GetUserId(), jobType, remoteOnly);
         return Ok(result);
     }
 
@@ -53,10 +57,41 @@ public class ScraperController : ControllerBase
         }
     }
 
-    [HttpGet("status")]
-    public async Task<IActionResult> GetStatus()
+    [HttpGet("info")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetInfo()
     {
-        var result = await _scraperService.GetStatusAsync(GetUserId());
+        var result = await _scraperService.GetInfoAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("preference")]
+    public async Task<IActionResult> GetPreference()
+    {
+        var result = await _scraperService.GetPreferenceAsync(GetUserId());
+        return Ok(result);
+    }
+
+    [HttpPost("preference")]
+    public async Task<IActionResult> SavePreference([FromBody] UserJobPreferenceDto dto)
+    {
+        var result = await _scraperService.SavePreferenceAsync(dto, GetUserId());
+        return Ok(result);
+    }
+
+    [HttpPost("request")]
+    public async Task<IActionResult> RequestScrape()
+    {
+        await _scraperService.RequestScrapeAsync(GetUserId());
+        return Ok();
+    }
+
+    [HttpGet("requests")]
+    public async Task<IActionResult> GetRequests()
+    {
+        if (GetUserRole() != "Admin")
+            return Forbid();
+        var result = await _scraperService.GetPendingRequestsAsync();
         return Ok(result);
     }
 }

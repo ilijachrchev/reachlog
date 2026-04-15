@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ScraperService, ScrapedJob } from '../../core/services/scraper.service';
+import { ScraperService, ScrapedJob, ScraperInfo, UserJobPreference } from '../../core/services/scraper.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 
 interface WaveGroup {
@@ -30,19 +31,44 @@ export class JobsComponent implements OnInit {
   waveGroups: WaveGroup[] = [];
   loading = true;
   running = false;
+  requesting = false;
   selectedJobType: string = 'All';
   remoteOnly: boolean = false;
   expandedJobId: string | null = null;
   importingIds = new Set<string>();
 
+  scraperInfo: ScraperInfo | null = null;
+  isAdmin = false;
+  showPreferenceModal = false;
+  preferenceForm: UserJobPreference = { country: '', city: '', jobType: 'Internship', keywords: '' };
+  savingPreference = false;
+
   constructor(
     private scraperService: ScraperService,
+    private authService: AuthService,
     private router: Router,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    this.loadJobs();
+    this.isAdmin = this.authService.isAdmin();
+
+    this.scraperService.getInfo().subscribe({
+      next: (info) => this.scraperInfo = info,
+      error: () => {}
+    });
+
+    this.scraperService.getPreference().subscribe({
+      next: (pref) => {
+        if (!pref) {
+          this.showPreferenceModal = true;
+        } else {
+          this.preferenceForm = { ...pref };
+          this.loadJobs();
+        }
+      },
+      error: () => this.loadJobs()
+    });
   }
 
   loadJobs(): void {
@@ -81,13 +107,44 @@ export class JobsComponent implements OnInit {
     this.running = true;
     this.scraperService.runScraper().subscribe({
       next: (result) => {
-        this.toastService.success(`Found ${result.totalFound} jobs in your feed!`);
+        this.toastService.success(`Feed updated — ${result.totalFound} total jobs in feed.`);
+        this.scraperService.getInfo().subscribe({ next: (info) => this.scraperInfo = info });
         this.loadJobs();
         this.running = false;
       },
       error: () => {
         this.toastService.error('Scraper failed. Try again.');
         this.running = false;
+      }
+    });
+  }
+
+  requestScrape(): void {
+    this.requesting = true;
+    this.scraperService.requestScrape().subscribe({
+      next: () => {
+        this.toastService.success("Request sent! You'll be notified when fresh jobs are available.");
+        this.requesting = false;
+      },
+      error: () => {
+        this.toastService.error('Request failed. Try again.');
+        this.requesting = false;
+      }
+    });
+  }
+
+  savePreference(): void {
+    if (!this.preferenceForm.country || !this.preferenceForm.city) return;
+    this.savingPreference = true;
+    this.scraperService.savePreference(this.preferenceForm).subscribe({
+      next: () => {
+        this.showPreferenceModal = false;
+        this.savingPreference = false;
+        this.loadJobs();
+      },
+      error: () => {
+        this.toastService.error('Failed to save preferences.');
+        this.savingPreference = false;
       }
     });
   }
@@ -115,6 +172,15 @@ export class JobsComponent implements OnInit {
 
   isImporting(id: string): boolean {
     return this.importingIds.has(id);
+  }
+
+  timeAgo(dateStr: string | null): string {
+    if (!dateStr) return 'Never';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
   }
 
   getScoreBadgeClass(score: number | null): string {
@@ -172,5 +238,6 @@ export class JobsComponent implements OnInit {
   goToPrepare(): void { this.router.navigate(['/prepare']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
+  goToAccount(): void { this.router.navigate(['/account']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
 }

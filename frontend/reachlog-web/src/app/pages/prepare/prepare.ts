@@ -53,5 +53,6 @@ export class PrepareComponent {
   goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
+  goToAccount(): void { this.router.navigate(['/account']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
 }

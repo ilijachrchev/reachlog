@@ -3,7 +3,6 @@ namespace ReachLog.Application.DTOs.Scraper;
 public class ScrapedJobDto
 {
     public Guid Id { get; set; }
-    public Guid UserId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Company { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;

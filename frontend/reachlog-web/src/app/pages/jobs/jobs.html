@@ -1,4 +1,45 @@
 <div class="jobs-shell">
+
+  <div class="pref-overlay" *ngIf="showPreferenceModal">
+    <div class="pref-card">
+      <h2 class="pref-title">Set your job preferences</h2>
+      <p class="pref-sub">Help us find the right jobs for you.</p>
+      <div class="pref-fields">
+        <div class="pref-field">
+          <label class="pref-label">Country</label>
+          <input class="pref-input" [(ngModel)]="preferenceForm.country" placeholder="e.g. Slovenia" />
+        </div>
+        <div class="pref-field">
+          <label class="pref-label">City</label>
+          <input class="pref-input" [(ngModel)]="preferenceForm.city" placeholder="e.g. Koper" />
+        </div>
+        <div class="pref-field">
+          <label class="pref-label">Job type</label>
+          <select class="pref-select" [(ngModel)]="preferenceForm.jobType">
+            <option value="Internship">Internship</option>
+            <option value="Junior">Junior</option>
+            <option value="Both">Both</option>
+          </select>
+        </div>
+        <div class="pref-field">
+          <label class="pref-label">Keywords</label>
+          <input class="pref-input" [(ngModel)]="preferenceForm.keywords" placeholder=".NET Angular internship" />
+        </div>
+      </div>
+      <button
+        class="pref-save-btn"
+        [disabled]="!preferenceForm.country || !preferenceForm.city || savingPreference"
+        (click)="savePreference()"
+      >
+        <span *ngIf="!savingPreference">Save preferences</span>
+        <span *ngIf="savingPreference" class="btn-spinner-wrap">
+          <span class="btn-spinner"></span>
+          Saving...
+        </span>
+      </button>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="topbar-brand">
       <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
@@ -12,6 +53,7 @@
       <button class="nav-btn active-page">Jobs</button>
       <button class="nav-btn" (click)="goToCv()">CV</button>
       <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn" (click)="goToAccount()">Account</button>
       <button class="nav-btn accent" (click)="goToNew()">+ New</button>
     </nav>
   </header>
@@ -22,14 +64,36 @@
       <div class="jobs-topbar-left">
         <h1 class="jobs-title">Job Feed</h1>
         <span class="jobs-count">{{ jobs.length }} jobs</span>
-      </div>
-      <button class="btn-run" [disabled]="running" (click)="runScraper()">
-        <span *ngIf="!running">Run scraper</span>
-        <span *ngIf="running" class="btn-spinner-wrap">
-          <span class="btn-spinner"></span>
-          Scraping...
+        <span *ngIf="scraperInfo?.lastScrapedAt" class="jobs-scraped-at">
+          Last scraped {{ timeAgo(scraperInfo!.lastScrapedAt) }}
         </span>
-      </button>
+      </div>
+      <div class="jobs-topbar-actions">
+        <button
+          *ngIf="isAdmin"
+          class="btn-run"
+          [disabled]="running"
+          (click)="runScraper()"
+        >
+          <span *ngIf="!running">Run scraper</span>
+          <span *ngIf="running" class="btn-spinner-wrap">
+            <span class="btn-spinner"></span>
+            Scraping...
+          </span>
+        </button>
+        <button
+          *ngIf="!isAdmin"
+          class="btn-request"
+          [disabled]="requesting"
+          (click)="requestScrape()"
+        >
+          <span *ngIf="!requesting">Request fresh scrape</span>
+          <span *ngIf="requesting" class="btn-spinner-wrap">
+            <span class="btn-spinner"></span>
+            Requesting...
+          </span>
+        </button>
+      </div>
     </div>
 
     <div class="jobs-filters">
@@ -56,7 +120,7 @@
         <line x1="12" y1="12" x2="12" y2="16"/>
         <line x1="10" y1="14" x2="14" y2="14"/>
       </svg>
-      <p class="empty-label">No jobs scraped yet — run the scraper to find opportunities</p>
+      <p class="empty-label">No jobs in the feed yet — request a scrape to find opportunities</p>
     </div>
 
     <div *ngIf="!loading && jobs.length > 0" class="job-list">
