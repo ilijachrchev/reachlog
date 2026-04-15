@@ -46,8 +46,10 @@ public class ScraperService : IScraperService
         {
             foreach (var country in request.Countries)
             {
-                var results = await _apifyService.ScrapeLinkedInAsync(keywords, country, 1, userId);
-                allResults.AddRange(results);
+                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, country, 1, userId);
+                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, country, 1, userId);
+                allResults.AddRange(linkedIn);
+                allResults.AddRange(indeed);
             }
         }
         else
@@ -55,8 +57,10 @@ public class ScraperService : IScraperService
             var wave1Locations = new[] { "Ljubljana", "Koper", "Maribor" };
             foreach (var loc in wave1Locations)
             {
-                var results = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 1, userId);
-                allResults.AddRange(results);
+                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 1, userId);
+                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, loc, 1, userId);
+                allResults.AddRange(linkedIn);
+                allResults.AddRange(indeed);
             }
 
             if (allResults.Count < 20)
@@ -64,20 +68,26 @@ public class ScraperService : IScraperService
                 var wave2Locations = new[] { "Vienna", "Milan", "Trieste", "Zagreb", "Munich", "Berlin" };
                 foreach (var loc in wave2Locations)
                 {
-                    var results = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 2, userId);
-                    allResults.AddRange(results);
+                    var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, loc, 2, userId);
+                    var indeed = await _apifyService.ScrapeIndeedAsync(keywords, loc, 2, userId);
+                    allResults.AddRange(linkedIn);
+                    allResults.AddRange(indeed);
                 }
             }
 
             if (allResults.Count < 50)
             {
-                var results = await _apifyService.ScrapeLinkedInAsync(keywords, "remote Europe", 3, userId);
-                allResults.AddRange(results);
+                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, "remote Europe", 3, userId);
+                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, "remote Europe", 3, userId);
+                allResults.AddRange(linkedIn);
+                allResults.AddRange(indeed);
             }
 
             {
-                var results = await _apifyService.ScrapeLinkedInAsync(keywords, "remote", 4, userId);
-                allResults.AddRange(results);
+                var linkedIn = await _apifyService.ScrapeLinkedInAsync(keywords, "remote", 4, userId);
+                var indeed = await _apifyService.ScrapeIndeedAsync(keywords, "remote", 4, userId);
+                allResults.AddRange(linkedIn);
+                allResults.AddRange(indeed);
             }
         }
 
