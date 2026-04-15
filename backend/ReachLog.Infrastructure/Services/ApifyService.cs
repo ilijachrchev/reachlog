@@ -75,6 +75,97 @@ public class ApifyService : IApifyService
         }
     }
 
+    public async Task<List<ScrapedJobDto>> ScrapeIndeedAsync(string keywords, string location, int wave, Guid userId)
+    {
+        if (string.IsNullOrWhiteSpace(_apiToken))
+        {
+            _logger.LogWarning("Apify API token is not configured. Skipping Indeed scrape for location {Location}.", location);
+            return [];
+        }
+
+        var requestBody = new
+        {
+            query = keywords,
+            location = location,
+            maxItems = 25,
+            parseJobDetail = false
+        };
+
+        var url = $"https://api.apify.com/v2/acts/misceres~indeed-scraper/run-sync-get-dataset-items?timeout=120";
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("Authorization", $"Bearer {_apiToken}");
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Apify Indeed API returned {StatusCode} for location {Location}.", response.StatusCode, location);
+                return [];
+            }
+
+            var body = await response.Content.ReadAsStringAsync();
+            var items = JsonDocument.Parse(body);
+
+            var results = new List<ScrapedJobDto>();
+            foreach (var item in items.RootElement.EnumerateArray())
+            {
+                var dto = MapIndeedToDto(item, wave, userId);
+                if (dto != null)
+                    results.Add(dto);
+            }
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Apify Indeed scrape failed for location {Location}.", location);
+            return [];
+        }
+    }
+
+    private static ScrapedJobDto? MapIndeedToDto(JsonElement item, int wave, Guid userId)
+    {
+        var title = GetString(item, "positionName") ?? string.Empty;
+        var company = GetString(item, "company") ?? string.Empty;
+        var location = GetString(item, "location") ?? string.Empty;
+        var jobUrl = GetString(item, "url") ?? string.Empty;
+        var description = GetString(item, "description");
+        var postedAtStr = GetString(item, "date");
+
+        if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(company))
+            return null;
+
+        DateTime? postedAt = null;
+        if (postedAtStr != null && DateTime.TryParse(postedAtStr, out var parsed))
+            postedAt = DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+
+        return new ScrapedJobDto
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Title = title,
+            Company = company,
+            Location = location,
+            Country = ExtractCountry(location),
+            IsRemote = location.Contains("remote", StringComparison.OrdinalIgnoreCase),
+            JobBoard = "Indeed",
+            ExternalUrl = jobUrl,
+            Description = description,
+            JobType = DetectJobType(title, description),
+            Wave = wave,
+            PostedAt = postedAt,
+            ScrapedAt = DateTime.UtcNow
+        };
+    }
+
     private static ScrapedJobDto? MapToDto(JsonElement item, int wave, Guid userId)
     {
         var title = GetString(item, "title") ?? GetString(item, "position") ?? string.Empty;
