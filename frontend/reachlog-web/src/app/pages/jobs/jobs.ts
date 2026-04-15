@@ -223,6 +223,7 @@ export class JobsComponent implements OnInit {
   getBoardBadgeClass(board: string): string {
     if (board === 'LinkedIn') return 'board-linkedin';
     if (board === 'Indeed') return 'board-indeed';
+    if (board === 'Wellfound') return 'board-wellfound';
     return 'board-other';
   }
 

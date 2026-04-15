@@ -63,6 +63,7 @@ public class ScraperService : IScraperService
         {
             allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, city, 1));
             allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, city, 1));
+            allResults.AddRange(await _apifyService.ScrapeWellfoundAsync(keywords, city, 1));
         }
 
         if (allResults.Count < 20)
@@ -72,6 +73,7 @@ public class ScraperService : IScraperService
             {
                 allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, loc, 2));
                 allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, loc, 2));
+                allResults.AddRange(await _apifyService.ScrapeWellfoundAsync(keywords, loc, 2));
             }
         }
 
@@ -79,10 +81,12 @@ public class ScraperService : IScraperService
         {
             allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, "remote Europe", 3));
             allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, "remote Europe", 3));
+            allResults.AddRange(await _apifyService.ScrapeWellfoundAsync(keywords, "remote Europe", 3));
         }
 
         allResults.AddRange(await _apifyService.ScrapeLinkedInAsync(keywords, "remote", 4));
         allResults.AddRange(await _apifyService.ScrapeIndeedAsync(keywords, "remote", 4));
+        allResults.AddRange(await _apifyService.ScrapeWellfoundAsync(keywords, "remote", 4));
 
         var existingUrls = await _db.ScrapedJobs
             .Select(j => j.ExternalUrl)

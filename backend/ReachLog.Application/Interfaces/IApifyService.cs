@@ -6,4 +6,5 @@ public interface IApifyService
 {
     Task<List<ScrapedJobDto>> ScrapeLinkedInAsync(string keywords, string location, int wave);
     Task<List<ScrapedJobDto>> ScrapeIndeedAsync(string keywords, string location, int wave);
+    Task<List<ScrapedJobDto>> ScrapeWellfoundAsync(string keywords, string location, int wave);
 }

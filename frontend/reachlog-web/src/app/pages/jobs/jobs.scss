@@ -544,6 +544,11 @@
     color: #3ecf8e;
     border: 1px solid rgba(62,207,142,0.2);
   }
+  &.board-wellfound {
+    background: rgba(245,166,35,0.15);
+    color: #f5a623;
+    border: 1px solid rgba(245,166,35,0.25);
+  }
   &.board-other {
     background: #25252b;
     color: #9090a0;
