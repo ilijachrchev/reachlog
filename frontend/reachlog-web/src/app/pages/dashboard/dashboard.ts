@@ -56,6 +56,7 @@ export class DashboardComponent implements OnInit {
   goToNew(): void { this.router.navigate(['/outreach/new']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
   goToKanban(): void { this.router.navigate(['/kanban']); }
+  goToPrepare(): void { this.router.navigate(['/prepare']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
   logout(): void { this.authService.logout(); }
