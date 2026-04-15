@@ -51,7 +51,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/prepare/prepare').then(m => m.PrepareComponent),
     canActivate: [authGuard]
   },
-  { 
+  {
+    path: 'jobs',
+    loadComponent: () => import('./pages/jobs/jobs').then(m => m.JobsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**', redirectTo: 'dashboard'
   }
 ];

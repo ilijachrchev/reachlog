@@ -59,6 +59,7 @@ export class CreateOutreachComponent {
   goToKanban(): void { this.router.navigate(['/kanban']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
   goToPrepare(): void { this.router.navigate(['/prepare']); }
+  goToJobs(): void { this.router.navigate(['/jobs']); }
   goToCv(): void { this.router.navigate(['/cv']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
 }

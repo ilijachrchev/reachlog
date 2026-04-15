@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build *)",
-      "Bash(npx ng *)"
+      "Bash(npx ng *)",
+      "Bash(taskkill /PID 28784 /F)",
+      "Bash(cmd /c \"taskkill /PID 28784 /F\")",
+      "Bash(cmd /c \"taskkill /IM ReachLog.API.exe /F\")"
     ]
   }
 }
