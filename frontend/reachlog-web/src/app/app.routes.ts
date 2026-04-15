@@ -46,6 +46,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/paste-inbox/paste-inbox').then(m => m.PasteInboxComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'prepare',
+    loadComponent: () => import('./pages/prepare/prepare').then(m => m.PrepareComponent),
+    canActivate: [authGuard]
+  },
   { 
     path: '**', redirectTo: 'dashboard'
   }

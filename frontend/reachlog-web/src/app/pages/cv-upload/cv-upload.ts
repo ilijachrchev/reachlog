@@ -126,6 +126,7 @@ export class CvUploadComponent implements OnInit, OnDestroy {
   goToKanban(): void { this.router.navigate(['/kanban']); }
   goToDashboard(): void { this.router.navigate(['/dashboard']); }
   goToInbox(): void { this.router.navigate(['/inbox']); }
+  goToPrepare(): void { this.router.navigate(['/prepare']); }
   goToAnalytics(): void { this.router.navigate(['/analytics']); }
   goToNew(): void { this.router.navigate(['/outreach/new']); }
 }

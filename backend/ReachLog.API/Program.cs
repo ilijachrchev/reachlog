@@ -21,6 +21,7 @@ builder.Services.AddScoped<ICvService, CvService>();
 builder.Services.AddScoped<IScoreService, ScoreService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INudgeService, NudgeService>();
+builder.Services.AddScoped<IPrepareService, PrepareService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
