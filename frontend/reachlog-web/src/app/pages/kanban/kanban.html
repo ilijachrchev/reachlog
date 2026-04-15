@@ -66,6 +66,7 @@
       <div
         *ngFor="let status of statuses"
         class="column"
+        [class.column-interested]="status === 'Interested'"
         [class.column-rejected]="status === 'Rejected'"
         [class.column-offer]="status === 'Offer'"
       >
@@ -115,6 +116,11 @@
 
               <div class="card-actions">
                 <button
+                  *ngIf="status === 'Interested' && o.externalUrl"
+                  class="apply-btn"
+                  (click)="$event.stopPropagation(); openUrl(o.externalUrl)"
+                >Apply →</button>
+                <button
                   class="score-btn"
                   [class.scoring]="isScoring(o.id)"
                   [disabled]="isScoring(o.id)"
@@ -133,6 +139,13 @@
 
           <div *ngIf="columns[status].length === 0" class="empty-column">
             <ng-container [ngSwitch]="status">
+
+              <ng-container *ngSwitchCase="'Interested'">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9090a0" stroke-width="1.5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span class="empty-label">Import jobs to see them here</span>
+              </ng-container>
 
               <ng-container *ngSwitchCase="'Sent'">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9090a0" stroke-width="1.5">
@@ -245,6 +258,11 @@
         <p class="detail-contact-email" *ngIf="selectedOutreach.contactEmail">
           {{ selectedOutreach.contactEmail }}
         </p>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedOutreach.externalUrl">
+        <h3 class="detail-section-title">Job Posting</h3>
+        <a class="detail-job-link" [href]="selectedOutreach.externalUrl" target="_blank" rel="noopener">Open job posting →</a>
       </div>
 
       <div class="detail-section" *ngIf="selectedOutreach.notes">

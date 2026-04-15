@@ -16,4 +16,5 @@ public class OutreachDto
     public List<string> MissingSkills { get; set; } = [];
     public string? RawMessage { get; set; }
     public string? Notes { get; set; }
+    public string? ExternalUrl { get; set; }
 }

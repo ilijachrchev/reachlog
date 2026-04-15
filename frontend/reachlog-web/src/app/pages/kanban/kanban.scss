@@ -145,8 +145,9 @@
   overflow: hidden;
   max-height: calc(100vh - 180px);
 
-  &.column-rejected { border-top: 2px solid #f06565; }
-  &.column-offer    { border-top: 2px solid #3ecf8e; }
+  &.column-interested { border-top: 2px solid #a78bfa; }
+  &.column-rejected   { border-top: 2px solid #f06565; }
+  &.column-offer      { border-top: 2px solid #3ecf8e; }
 }
 
 .column-header {
@@ -171,8 +172,9 @@
   border-radius: 50%;
   flex-shrink: 0;
 
-  &.dot-sent      { background: #6b6b7b; }
-  &.dot-opened    { background: #5b8ef9; }
+  &.dot-interested { background: #a78bfa; }
+  &.dot-sent       { background: #6b6b7b; }
+  &.dot-opened     { background: #5b8ef9; }
   &.dot-replied   { background: #a78bfa; }
   &.dot-interview { background: #f5a623; }
   &.dot-rejected  { background: #f06565; }
@@ -385,7 +387,29 @@
 .card-actions {
   margin-top: 0.5rem;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.apply-btn {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgba(167,139,250,0.35);
+  background: rgba(167,139,250,0.1);
+  color: #a78bfa;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 150ms;
+
+  &:hover {
+    background: rgba(167,139,250,0.2);
+    border-color: rgba(167,139,250,0.6);
+  }
 }
 
 .score-btn {
@@ -783,6 +807,14 @@
     border-color: rgba(240,101,101,0.4);
     color: #f06565;
   }
+}
+
+.detail-job-link {
+  font-size: 0.8125rem;
+  color: #7a8fff;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
 }
 
 .detail-notes {

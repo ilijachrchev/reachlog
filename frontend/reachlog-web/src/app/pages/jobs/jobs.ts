@@ -5,6 +5,19 @@ import { Router } from '@angular/router';
 import { ScraperService, ScrapedJob } from '../../core/services/scraper.service';
 import { ToastService } from '../../core/services/toast.service';
 
+interface WaveGroup {
+  wave: number;
+  label: string;
+  jobs: ScrapedJob[];
+}
+
+const WAVE_LABELS: Record<number, string> = {
+  1: '📍 Local — Wave 1',
+  2: '🌍 Nearby countries — Wave 2',
+  3: '🌐 Remote Europe — Wave 3',
+  4: '🌍 Remote Worldwide — Wave 4'
+};
+
 @Component({
   selector: 'app-jobs',
   standalone: true,
@@ -14,9 +27,11 @@ import { ToastService } from '../../core/services/toast.service';
 })
 export class JobsComponent implements OnInit {
   jobs: ScrapedJob[] = [];
+  waveGroups: WaveGroup[] = [];
   loading = true;
   running = false;
-  filters = { jobType: '', remoteOnly: false, minScore: null as number | null };
+  selectedJobType: string = 'All';
+  remoteOnly: boolean = false;
   expandedJobId: string | null = null;
   importingIds = new Set<string>();
 
@@ -32,15 +47,34 @@ export class JobsComponent implements OnInit {
 
   loadJobs(): void {
     this.loading = true;
-    const filters: { jobType?: string; remoteOnly?: boolean; minScore?: number } = {};
-    if (this.filters.jobType) filters.jobType = this.filters.jobType;
-    if (this.filters.remoteOnly) filters.remoteOnly = true;
-    if (this.filters.minScore !== null) filters.minScore = this.filters.minScore;
+    const filters: { jobType?: string; remoteOnly?: boolean } = {};
+    if (this.selectedJobType !== 'All') filters.jobType = this.selectedJobType;
+    if (this.remoteOnly) filters.remoteOnly = true;
 
     this.scraperService.getJobs(filters).subscribe({
-      next: (data) => { this.jobs = data; this.loading = false; },
+      next: (data) => {
+        this.jobs = data;
+        this.waveGroups = this.buildWaveGroups(data);
+        this.loading = false;
+      },
       error: () => this.loading = false
     });
+  }
+
+  private buildWaveGroups(jobs: ScrapedJob[]): WaveGroup[] {
+    const map = new Map<number, ScrapedJob[]>();
+    for (const job of jobs) {
+      const wave = job.wave ?? 0;
+      if (!map.has(wave)) map.set(wave, []);
+      map.get(wave)!.push(job);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([wave, waveJobs]) => ({
+        wave,
+        label: WAVE_LABELS[wave] ?? `Wave ${wave}`,
+        jobs: waveJobs
+      }));
   }
 
   runScraper(): void {
@@ -68,6 +102,7 @@ export class JobsComponent implements OnInit {
       next: (updated) => {
         const idx = this.jobs.findIndex(j => j.id === job.id);
         if (idx !== -1) this.jobs[idx] = updated;
+        this.waveGroups = this.buildWaveGroups(this.jobs);
         this.importingIds.delete(job.id);
         this.toastService.success(`${job.company} added to Kanban!`);
       },
@@ -76,10 +111,6 @@ export class JobsComponent implements OnInit {
         this.toastService.error('Import failed. Try again.');
       }
     });
-  }
-
-  applyFilters(): void {
-    this.loadJobs();
   }
 
   isImporting(id: string): boolean {

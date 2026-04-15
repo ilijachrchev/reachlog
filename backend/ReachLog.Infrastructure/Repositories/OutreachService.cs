@@ -74,6 +74,7 @@ public class OutreachService : IOutreachService
         outreach.RawMessage = request.RawMessage;
         outreach.Notes = request.Notes;
         outreach.SentAt = request.SentAt;
+        outreach.ExternalUrl = request.ExternalUrl;
 
         await _context.SaveChangesAsync();
 
@@ -145,6 +146,7 @@ public class OutreachService : IOutreachService
             ? []
             : JsonSerializer.Deserialize<List<string>>(outreach.MissingSkills) ?? [],
         RawMessage = outreach.RawMessage,
-        Notes = outreach.Notes
+        Notes = outreach.Notes,
+        ExternalUrl = outreach.ExternalUrl
     };
 }

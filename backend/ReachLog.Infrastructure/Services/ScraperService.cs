@@ -178,9 +178,10 @@ public class ScraperService : IScraperService
             ContactName = string.Empty,
             ContactEmail = string.Empty,
             Channel = job.JobBoard,
-            RawMessage = job.ExternalUrl,
-            Status = "Sent",
-            SentAt = job.PostedAt ?? DateTime.UtcNow,
+            RawMessage = job.Description ?? string.Empty,
+            ExternalUrl = job.ExternalUrl,
+            Status = "Interested",
+            SentAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
 

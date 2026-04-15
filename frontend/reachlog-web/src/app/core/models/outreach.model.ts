@@ -13,6 +13,7 @@ export interface Outreach {
   missingSkills: string[] | null;
   rawMessage: string | null;
   notes: string | null;
+  externalUrl: string | null;
 }
 
 export interface CreateOutreachRequest {
