@@ -10,4 +10,5 @@ public class UpdateOutreachDto
     public string? RawMessage { get; set; }
     public string? Notes { get; set; }
     public DateTime SentAt { get; set; }
+    public string? ExternalUrl { get; set; }
 }

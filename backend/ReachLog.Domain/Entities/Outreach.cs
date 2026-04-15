@@ -18,4 +18,5 @@ public class Outreach
     public int? MatchScore { get; set; }
     public string? MissingSkills { get; set; }
     public string? Notes { get; set; }
+    public string? ExternalUrl { get; set; }
 }

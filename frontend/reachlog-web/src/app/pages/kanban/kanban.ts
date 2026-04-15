@@ -13,7 +13,7 @@ import { Outreach } from '../../core/models/outreach.model';
 import { ToastService } from '../../core/services/toast.service';
 import { FormsModule } from '@angular/forms';
 
-export const STATUSES = ['Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
+export const STATUSES = ['Interested', 'Sent', 'Opened', 'Replied', 'Interview', 'Rejected', 'Offer'] as const;
 export type Status = typeof STATUSES[number];
 
 @Component({
@@ -208,6 +208,10 @@ export class KanbanComponent implements OnInit {
     return new Date(dateStr).toLocaleDateString('en-GB', {
       day: 'numeric', month: 'short', year: 'numeric'
     });
+  }
+
+  openUrl(url: string): void {
+    window.open(url, '_blank', 'noopener');
   }
 
   goToInbox(): void { this.router.navigate(['/inbox']); }
