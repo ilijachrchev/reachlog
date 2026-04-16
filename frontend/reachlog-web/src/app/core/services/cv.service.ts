@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { CvBlock } from '../models/cv.model';
 
 export interface CvInfo {
   fileName: string;
@@ -29,5 +30,24 @@ export class CvService {
 
   getFileUrl(): string {
     return `${this.apiUrl}/file`;
+  }
+
+  getBlocks(): Observable<CvBlock[]> {
+    return this.http.get<CvBlock[]>(`${this.apiUrl}/blocks`);
+  }
+
+  getSuggestions(blocks: CvBlock[], jobDescription?: string): Observable<{ blockId: string; suggestedContent: string }[]> {
+    return this.http.post<{ blockId: string; suggestedContent: string }[]>(`${this.apiUrl}/suggest`, {
+      blocks,
+      jobDescription
+    });
+  }
+
+  exportCvAsDocx(blocks: CvBlock[]): Observable<Blob> {
+    return this.http.post<Blob>(`${this.apiUrl}/export/docx`, { blocks }, { responseType: 'blob' as 'json' });
+  }
+
+  exportCvAsPdf(blocks: CvBlock[]): Observable<Blob> {
+    return this.http.post<Blob>(`${this.apiUrl}/export/pdf`, { blocks }, { responseType: 'blob' as 'json' });
   }
 }
