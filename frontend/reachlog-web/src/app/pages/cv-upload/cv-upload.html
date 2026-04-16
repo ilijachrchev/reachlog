@@ -121,6 +121,88 @@
         </button>
       </div>
 
+      <!-- CV Editor -->
+      <div class="cv-editor-section" *ngIf="cvInfo">
+
+        <div class="editor-header">
+          <h2 class="upload-title">CV Editor</h2>
+          <div class="editor-actions">
+            <button class="suggest-all-btn" (click)="suggestAll()" [disabled]="suggestAllLoading || blocksLoading">
+              <span *ngIf="!suggestAllLoading">Suggest All</span>
+              <span *ngIf="suggestAllLoading" class="uploading-label"><span class="spinner"></span> Thinking...</span>
+            </button>
+            <button class="download-btn" (click)="exportDocx()" [disabled]="blocks.length === 0">Download as Word</button>
+            <button class="download-btn" (click)="exportPdf()" [disabled]="blocks.length === 0">Download as PDF</button>
+          </div>
+        </div>
+
+        <div class="job-context-bar">
+          <div class="toggle-row">
+            <button
+              class="toggle-btn"
+              [class.active]="!useJobSelector"
+              (click)="useJobSelector = false"
+            >Paste job description</button>
+            <button
+              class="toggle-btn"
+              [class.active]="useJobSelector"
+              (click)="useJobSelector = true"
+            >Use job from Kanban</button>
+          </div>
+          <textarea
+            *ngIf="!useJobSelector"
+            class="job-textarea"
+            [(ngModel)]="jobDescription"
+            placeholder="Paste job description..."
+          ></textarea>
+          <select
+            *ngIf="useJobSelector"
+            class="job-select"
+            [(ngModel)]="selectedOutreachId"
+          >
+            <option [ngValue]="null">— Select an outreach —</option>
+            <option *ngFor="let o of interestedOutreaches" [ngValue]="o.id">
+              {{ o.companyName }} — {{ o.role }}
+            </option>
+          </select>
+        </div>
+
+        <p class="blocks-loading" *ngIf="blocksLoading && blocks.length === 0">Parsing your CV...</p>
+
+        <div class="block-card" *ngFor="let block of blocks">
+          <div class="block-header">
+            <span class="block-title">{{ block.title }}</span>
+            <span class="type-badge">{{ block.type }}</span>
+            <button class="suggest-btn" (click)="suggestBlock(block)" [disabled]="block.loading || suggestAllLoading">
+              <span *ngIf="!block.loading">Suggest</span>
+              <span *ngIf="block.loading">...</span>
+            </button>
+          </div>
+
+          <ng-container *ngIf="!block.showDiff">
+            <textarea class="block-textarea" [(ngModel)]="block.content"></textarea>
+          </ng-container>
+
+          <ng-container *ngIf="block.showDiff">
+            <div class="diff-view">
+              <div class="diff-original">
+                <span class="diff-label">Original</span>
+                <p>{{ block.content }}</p>
+              </div>
+              <div class="diff-suggested">
+                <span class="diff-label">Suggested</span>
+                <p>{{ block.suggestion }}</p>
+              </div>
+            </div>
+            <div class="diff-actions">
+              <button class="accept-btn" (click)="acceptSuggestion(block)">✓ Accept</button>
+              <button class="reject-btn" (click)="rejectSuggestion(block)">✗ Reject</button>
+            </div>
+          </ng-container>
+        </div>
+
+      </div>
+
     </div>
   </main>
 </div>
