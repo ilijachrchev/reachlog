@@ -190,6 +190,22 @@ public class ScraperService : IScraperService
                 (remoteOnly != true || j.IsRemote))
             .ToListAsync();
 
+        var preference = await _db.UserJobPreferences.FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (preference != null && !string.IsNullOrWhiteSpace(preference.Keywords))
+        {
+            var tokens = preference.Keywords
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(k => k.ToLowerInvariant())
+                .ToList();
+
+            jobs = [.. jobs.Where(j =>
+            {
+                var text = ((j.Title ?? "") + " " + (j.Description ?? "")).ToLowerInvariant();
+                return tokens.Any(t => text.Contains(t));
+            })];
+        }
+
         var interactions = await _db.UserJobInteractions
             .Where(i => i.UserId == userId)
             .ToDictionaryAsync(i => i.ScrapedJobId);

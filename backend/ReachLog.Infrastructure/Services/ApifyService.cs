@@ -85,7 +85,7 @@ public class ApifyService : IApifyService
 
         var requestBody = new
         {
-            query = keywords,
+            query = $"{keywords} {location}",
             location = location,
             maxItems = 25,
             parseJobDetail = false
@@ -201,6 +201,9 @@ public class ApifyService : IApifyService
         if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(company))
             return null;
 
+        if (!IsITJob(title))
+            return null;
+
         return new ScrapedJobDto
         {
             Id = Guid.NewGuid(),
@@ -229,6 +232,9 @@ public class ApifyService : IApifyService
         var postedAtStr = GetString(item, "date");
 
         if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(company))
+            return null;
+
+        if (!IsITJob(title))
             return null;
 
         DateTime? postedAt = null;
@@ -265,6 +271,9 @@ public class ApifyService : IApifyService
         if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(company))
             return null;
 
+        if (!IsITJob(title))
+            return null;
+
         DateTime? postedAt = null;
         if (postedAtStr != null && DateTime.TryParse(postedAtStr, out var parsed))
             postedAt = DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
@@ -285,6 +294,26 @@ public class ApifyService : IApifyService
             PostedAt = postedAt,
             ScrapedAt = DateTime.UtcNow
         };
+    }
+
+    private static bool IsITJob(string title)
+    {
+        var lower = title.ToLowerInvariant();
+
+        var blocked = new[]
+        {
+            "driver", "delivery", "warehouse", "shopper", "packer", "shipper",
+            "toll", "cashier", "nurse", "nursing", "caregiver", "cleaner",
+            "janitor", "security guard", "receptionist", "accountant",
+            "sales associate", "retail", "barista", "chef", "cook",
+            "electrician", "plumber", "mechanic", "hvac", "welder",
+            "truck", "forklift", "picker", "stacker", "fulfillment center"
+        };
+
+        if (blocked.Any(lower.Contains))
+            return false;
+
+        return true;
     }
 
     private static string? GetString(JsonElement element, string key)
