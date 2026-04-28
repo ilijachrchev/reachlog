@@ -63,18 +63,18 @@ public class CvController : ControllerBase
         return File(result.Value.bytes, result.Value.contentType, result.Value.fileName);
     }
 
-    [HttpGet("blocks")]
-    public async Task<IActionResult> GetBlocks()
+    [HttpPost("improve")]
+    public async Task<ActionResult<List<CvSuggestionDto>>> ImproveCv([FromBody] CvImproveRequestDto request)
     {
-        var blocks = await _cvService.GetCvBlocksAsync(GetUserId());
-        return Ok(blocks);
-    }
-
-    [HttpPost("suggest")]
-    public async Task<IActionResult> GetSuggestions([FromBody] CvSuggestRequestDto request)
-    {
-        var suggestions = await _cvService.GetSuggestionsAsync(GetUserId(), request);
-        return Ok(suggestions);
+        try
+        {
+            var suggestions = await _cvService.ImproveCvAsync(GetUserId(), request);
+            return Ok(suggestions);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost("export/docx")]
