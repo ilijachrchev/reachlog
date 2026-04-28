@@ -1,6 +1,3 @@
 namespace ReachLog.Application.DTOs.Cv;
 
-public class CvExportRequestDto
-{
-    public List<CvBlockDto> Blocks { get; set; } = new();
-}
+public record CvExportRequestDto(string FullText);
