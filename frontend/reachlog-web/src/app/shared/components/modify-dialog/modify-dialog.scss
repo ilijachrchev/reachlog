@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 300;
+}
+
+.dialog-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 301;
+  background: #25252b;
+  border: 1px solid #333338;
+  border-radius: 12px;
+  padding: 24px;
+  width: 480px;
+  max-width: 90vw;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dialog-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f0f0f2;
+  margin-bottom: 1.25rem;
+}
+
+.dialog-original {
+  margin-bottom: 1rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #606068;
+  margin-bottom: 0.4rem;
+}
+
+.original-text {
+  background: rgba(240,101,101,0.08);
+  border: 1px solid rgba(240,101,101,0.2);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  color: #d0d0dc;
+  line-height: 1.5;
+}
+
+.dialog-suggested {
+  margin-bottom: 1.25rem;
+}
+
+.suggested-textarea {
+  width: 100%;
+  background: rgba(62,207,142,0.06);
+  border: 1px solid rgba(62,207,142,0.25);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #e8e8f0;
+  resize: vertical;
+  outline: none;
+  transition: border-color 150ms;
+  line-height: 1.5;
+
+  &:focus { border-color: #3ecf8e; }
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  padding: 0.55rem 1.5rem;
+  background: #5b6cf9;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+
+  &:hover { background: #6b7dff; }
+}
+
+.btn-cancel {
+  padding: 0.55rem 1.25rem;
+  background: #25252b;
+  border: 1px solid #333338;
+  color: #9090a0;
+  border-radius: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 150ms;
+
+  &:hover { background: #2a2a30; color: #f0f0f2; }
+}

@@ -1,0 +1,51 @@
+<div class="panel">
+  <div class="panel-header">
+    <span class="panel-title">Suggestions</span>
+    <span class="panel-count" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+  </div>
+
+  <div class="panel-body">
+    <div *ngIf="groups.length === 0" class="empty-state">
+      <ng-container *ngIf="!hasImproved">
+        No suggestions yet. Click <strong>Improve CV</strong> to get started.
+      </ng-container>
+      <ng-container *ngIf="hasImproved">
+        Your CV looks great — no changes suggested for this job.
+      </ng-container>
+    </div>
+
+    <div class="group" *ngFor="let group of groups">
+      <div class="group-header" (click)="toggleGroup(group)">
+        <span class="group-name">{{ group.section || 'General' }}</span>
+        <span class="group-chevron" [class.collapsed]="group.collapsed">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </span>
+      </div>
+
+      <div class="group-items" *ngIf="!group.collapsed">
+        <div
+          class="suggestion-card"
+          *ngFor="let s of group.suggestions"
+          (click)="onCardClick(s.id)"
+        >
+          <div class="card-top">
+            <span class="type-badge type-{{ s.type }}">{{ typeLabel(s.type) }}</span>
+          </div>
+          <div class="card-diff">
+            <div class="diff-original">{{ truncate(s.originalText) }}</div>
+            <div class="diff-arrow">→</div>
+            <div class="diff-suggested">{{ truncate(s.suggestedText) }}</div>
+          </div>
+          <div class="card-reason">{{ s.reason }}</div>
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button class="btn-accept" (click)="accept.emit(s.id)">Accept</button>
+            <button class="btn-modify" (click)="modify.emit(s.id)">Modify</button>
+            <button class="btn-reject" (click)="reject.emit(s.id)">Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

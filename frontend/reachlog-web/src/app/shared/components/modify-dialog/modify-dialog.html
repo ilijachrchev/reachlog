@@ -1,0 +1,22 @@
+<ng-container *ngIf="suggestion">
+  <div class="dialog-backdrop" (click)="cancel.emit()"></div>
+  <div class="dialog-card">
+    <h3 class="dialog-title">Modify suggestion</h3>
+    <div class="dialog-original">
+      <span class="field-label">Original</span>
+      <div class="original-text">{{ suggestion.originalText }}</div>
+    </div>
+    <div class="dialog-suggested">
+      <span class="field-label">Suggested (editable)</span>
+      <textarea
+        class="suggested-textarea"
+        [(ngModel)]="editedText"
+        rows="4"
+      ></textarea>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-save" (click)="onSave()">Save</button>
+      <button class="btn-cancel" (click)="cancel.emit()">Cancel</button>
+    </div>
+  </div>
+</ng-container>

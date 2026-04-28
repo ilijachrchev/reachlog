@@ -27,6 +27,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'cv-editor',
+    loadComponent: () => import('./pages/cv-editor/cv-editor').then(m => m.CvEditorComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'analytics',
     loadComponent: () => import('./pages/analytics/analytics').then(m => m.AnalyticsComponent),
     canActivate: [authGuard]
