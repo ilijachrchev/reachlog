@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CvBlock } from '../models/cv.model';
+import { CvSuggestion, CvImproveRequest } from '../models/cv.model';
 
 export interface CvInfo {
+  id: string;
   fileName: string;
   uploadedAt: string;
   characterCount: number;
+  extractedText?: string;
   contentType: string | null;
 }
 
@@ -32,22 +34,15 @@ export class CvService {
     return `${this.apiUrl}/file`;
   }
 
-  getBlocks(): Observable<CvBlock[]> {
-    return this.http.get<CvBlock[]>(`${this.apiUrl}/blocks`);
+  improveCv(request: CvImproveRequest): Observable<CvSuggestion[]> {
+    return this.http.post<CvSuggestion[]>(`${this.apiUrl}/improve`, request);
   }
 
-  getSuggestions(blocks: CvBlock[], jobDescription?: string): Observable<{ blockId: string; suggestedContent: string }[]> {
-    return this.http.post<{ blockId: string; suggestedContent: string }[]>(`${this.apiUrl}/suggest`, {
-      blocks,
-      jobDescription
-    });
+  exportCvAsDocx(fullText: string): Observable<Blob> {
+    return this.http.post<Blob>(`${this.apiUrl}/export/docx`, { fullText }, { responseType: 'blob' as 'json' });
   }
 
-  exportCvAsDocx(blocks: CvBlock[]): Observable<Blob> {
-    return this.http.post<Blob>(`${this.apiUrl}/export/docx`, { blocks }, { responseType: 'blob' as 'json' });
-  }
-
-  exportCvAsPdf(blocks: CvBlock[]): Observable<Blob> {
-    return this.http.post<Blob>(`${this.apiUrl}/export/pdf`, { blocks }, { responseType: 'blob' as 'json' });
+  exportCvAsPdf(fullText: string): Observable<Blob> {
+    return this.http.post<Blob>(`${this.apiUrl}/export/pdf`, { fullText }, { responseType: 'blob' as 'json' });
   }
 }

@@ -1,0 +1,33 @@
+<ng-container *ngIf="suggestion">
+  <div class="popover-backdrop" (click)="onBackdropClick()"></div>
+  <div
+    class="popover-card"
+    [style.top.px]="position.top"
+    [style.left.px]="position.left"
+  >
+    <div class="popover-header">
+      <span class="type-badge type-{{ suggestion.type }}">{{ typeLabel(suggestion.type) }}</span>
+      <button class="close-btn" (click)="close.emit()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="popover-reason">{{ suggestion.reason }}</div>
+    <div class="popover-diff">
+      <div class="diff-row diff-old">
+        <span class="diff-label">Original</span>
+        <span class="diff-text strikethrough">{{ suggestion.originalText }}</span>
+      </div>
+      <div class="diff-row diff-new">
+        <span class="diff-label">Suggested</span>
+        <span class="diff-text">{{ suggestion.suggestedText }}</span>
+      </div>
+    </div>
+    <div class="popover-actions">
+      <button class="btn-accept" (click)="accept.emit(suggestion.id)">Accept</button>
+      <button class="btn-modify" (click)="modify.emit(suggestion.id)">Modify</button>
+      <button class="btn-reject" (click)="reject.emit(suggestion.id)">Reject</button>
+    </div>
+  </div>
+</ng-container>

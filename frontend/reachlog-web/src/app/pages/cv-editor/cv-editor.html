@@ -1,0 +1,122 @@
+<div class="editor-shell">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="/logo.png" alt="ReachLog" class="topbar-logo" />
+      <span class="brand-name">ReachLog</span>
+    </div>
+    <nav class="topbar-nav">
+      <button class="nav-btn" (click)="goToDashboard()">Dashboard</button>
+      <button class="nav-btn" (click)="goToKanban()">Kanban</button>
+      <button class="nav-btn" (click)="goToInbox()">Paste Inbox</button>
+      <button class="nav-btn" (click)="goToPrepare()">Prepare</button>
+      <button class="nav-btn" (click)="goToJobs()">Jobs</button>
+      <button class="nav-btn active-page" (click)="goToUpload()">CV</button>
+      <button class="nav-btn" (click)="goToAnalytics()">Analytics</button>
+      <button class="nav-btn accent" (click)="goToNew()">+ New</button>
+    </nav>
+  </header>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-bar"></div>
+  </div>
+
+  <div *ngIf="!loading" class="editor-layout">
+
+    <div class="editor-topbar">
+      <h1 class="page-title">CV Editor</h1>
+
+      <div class="context-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="jobContextTab === 'paste'"
+          (click)="jobContextTab = 'paste'"
+        >Paste JD</button>
+        <button
+          class="tab-btn"
+          [class.active]="jobContextTab === 'outreach'"
+          (click)="jobContextTab = 'outreach'"
+        >Use outreach</button>
+      </div>
+
+      <div class="context-input">
+        <textarea
+          *ngIf="jobContextTab === 'paste'"
+          class="jd-textarea"
+          [(ngModel)]="jobDescription"
+          placeholder="Paste job description (optional)..."
+          rows="2"
+        ></textarea>
+        <select
+          *ngIf="jobContextTab === 'outreach'"
+          class="outreach-select"
+          [(ngModel)]="selectedOutreachId"
+        >
+          <option [ngValue]="null">— Select an Interested outreach —</option>
+          <option *ngFor="let o of interestedOutreaches" [ngValue]="o.id">
+            {{ o.companyName }} — {{ o.role }}
+          </option>
+        </select>
+      </div>
+
+      <div class="topbar-actions">
+        <button
+          class="btn-improve"
+          (click)="onImproveClicked()"
+          [disabled]="improving"
+        >
+          <span *ngIf="!improving">Improve CV</span>
+          <span *ngIf="improving" class="btn-loading">
+            <span class="spinner"></span> Thinking...
+          </span>
+        </button>
+        <button class="btn-export" (click)="onExportDocx()" [disabled]="exportingDocx">
+          <span *ngIf="!exportingDocx">Download Word</span>
+          <span *ngIf="exportingDocx">Exporting...</span>
+        </button>
+        <button class="btn-export" (click)="onExportPdf()" [disabled]="exportingPdf">
+          <span *ngIf="!exportingPdf">Download PDF</span>
+          <span *ngIf="exportingPdf">Exporting...</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-body">
+      <div class="editor-pane">
+        <app-cv-document-editor
+          [initialContent]="cvText"
+          [suggestions]="suggestions"
+          [editable]="editorEditable"
+          (suggestionClicked)="onSuggestionClicked($event)"
+          (contentChanged)="$event"
+        ></app-cv-document-editor>
+      </div>
+
+      <div class="panel-pane">
+        <app-suggestion-panel
+          [suggestions]="suggestions"
+          [hasImproved]="hasImproved"
+          (accept)="onAccept($event)"
+          (reject)="onReject($event)"
+          (modify)="onModifyOpen($event)"
+          (scrollTo)="onScrollTo($event)"
+        ></app-suggestion-panel>
+      </div>
+    </div>
+
+  </div>
+
+  <app-suggestion-popover
+    [suggestion]="activeSuggestion"
+    [position]="popoverPosition"
+    (accept)="onAccept($event)"
+    (reject)="onReject($event)"
+    (modify)="onModifyOpen($event)"
+    (close)="onPopoverClose()"
+  ></app-suggestion-popover>
+
+  <app-modify-dialog
+    [suggestion]="modifySuggestion"
+    (save)="onModifySave($event)"
+    (cancel)="onModifyCancel()"
+  ></app-modify-dialog>
+</div>

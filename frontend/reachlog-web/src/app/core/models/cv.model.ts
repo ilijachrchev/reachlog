@@ -1,9 +1,18 @@
-export interface CvBlock {
+export type SuggestionStatus = 'pending' | 'accepted' | 'rejected' | 'modified';
+export type SuggestionType = 'impact' | 'keyword' | 'clarity' | 'quantify';
+
+export interface CvSuggestion {
   id: string;
-  type: string;
-  title: string;
-  content: string;
-  suggestion?: string;
-  showDiff?: boolean;
-  loading?: boolean;
+  section: string;
+  type: SuggestionType;
+  originalText: string;
+  suggestedText: string;
+  reason: string;
+  status: SuggestionStatus;
+  modifiedText?: string;
+}
+
+export interface CvImproveRequest {
+  jobDescription?: string;
+  outreachId?: string;
 }
