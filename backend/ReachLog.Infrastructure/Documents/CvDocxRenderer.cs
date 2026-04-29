@@ -31,6 +31,13 @@ internal static class CvDocxRenderer
 
                 foreach (var entry in section.Entries)
                 {
+                    if (entry.FlowText != null)
+                    {
+                        foreach (var paragraph in entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                            body.AppendChild(FlowTextParagraph(paragraph.Trim()));
+                        continue;
+                    }
+
                     if (!string.IsNullOrWhiteSpace(entry.Organization))
                         body.AppendChild(EntryHeaderParagraph(entry.Organization, entry.Date));
 
@@ -187,6 +194,22 @@ internal static class CvDocxRenderer
             new FontSize { Val = "20" }
         ));
         run.AppendChild(new Text($"• {text}") { Space = SpaceProcessingModeValues.Preserve });
+        para.AppendChild(run);
+        return para;
+    }
+
+    private static Paragraph FlowTextParagraph(string text)
+    {
+        var para = new Paragraph();
+        para.AppendChild(new ParagraphProperties(
+            new SpacingBetweenLines { Before = "0", After = "80" }
+        ));
+        var run = new Run();
+        run.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new FontSize { Val = "20" }
+        ));
+        run.AppendChild(new Text(text) { Space = SpaceProcessingModeValues.Preserve });
         para.AppendChild(run);
         return para;
     }

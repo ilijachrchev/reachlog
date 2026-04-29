@@ -74,6 +74,16 @@ internal sealed class CvQuestDocument : IDocument
 
     private static void RenderEntry(ColumnDescriptor col, CvEntry entry)
     {
+        if (entry.FlowText != null)
+        {
+            col.Item().PaddingTop(4).Column(flowCol =>
+            {
+                foreach (var paragraph in entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                    flowCol.Item().PaddingBottom(4).Text(paragraph.Trim()).FontSize(10);
+            });
+            return;
+        }
+
         var hasOrg = !string.IsNullOrWhiteSpace(entry.Organization);
         var hasDate = !string.IsNullOrWhiteSpace(entry.Date);
         var hasRole = !string.IsNullOrWhiteSpace(entry.Role);
