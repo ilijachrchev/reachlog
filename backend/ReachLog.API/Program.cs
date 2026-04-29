@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QuestPDF.Infrastructure;
 using ReachLog.Application.Interfaces;
+using ReachLog.Infrastructure.Documents;
 using ReachLog.Infrastructure.Persistence;
 using ReachLog.Infrastructure.Services;
 using System.Text;
 using ReachLog.Infrastructure.Repositories;
+
+QuestPDF.Settings.License = LicenseType.Community;
+CvFonts.TryRegisterInter(AppDomain.CurrentDomain.BaseDirectory);
 
 var builder = WebApplication.CreateBuilder(args);
 
