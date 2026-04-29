@@ -7,9 +7,8 @@ using ReachLog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Writer;
-using UglyToad.PdfPig.Fonts.Standard14Fonts;
-using UglyToad.PdfPig.Core;
+using QuestPDF.Fluent;
+using ReachLog.Infrastructure.Documents;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -241,62 +240,15 @@ Job context (may be empty):
 
     public Task<byte[]> ExportCvAsDocxAsync(CvExportRequestDto request)
     {
-        var ms = new MemoryStream();
-
-        using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document))
-        {
-            var mainPart = doc.AddMainDocumentPart();
-            mainPart.Document = new Document();
-            var body = mainPart.Document.AppendChild(new Body());
-
-            var fullText = NormalizeLigatures(request.FullText);
-            foreach (var line in fullText.Split('\n'))
-            {
-                var para = body.AppendChild(new Paragraph());
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    var run = para.AppendChild(new Run());
-                    run.AppendChild(new Text(line) { Space = SpaceProcessingModeValues.Preserve });
-                }
-            }
-
-            mainPart.Document.Save();
-        }
-
-        return Task.FromResult(ms.ToArray());
+        var parsed = CvParser.Parse(NormalizeLigatures(request.FullText));
+        return Task.FromResult(CvDocxRenderer.Render(parsed));
     }
 
     public Task<byte[]> ExportCvAsPdfAsync(CvExportRequestDto request)
     {
-        var fullText = NormalizeLigatures(request.FullText);
-
-        var pdfBuilder = new PdfDocumentBuilder();
-        var normalFont = pdfBuilder.AddStandard14Font(Standard14Font.Helvetica);
-
-        const double marginLeft = 50;
-        const double marginBottom = 50;
-        const double pageHeight = 842;
-        const double normalSize = 11;
-        const double lineHeight = 16;
-        const int maxCharsPerLine = 85;
-
-        var page = pdfBuilder.AddPage(595, 842);
-        double y = pageHeight - 70;
-
-        var lines = SplitIntoLines(fullText, maxCharsPerLine);
-        foreach (var line in lines)
-        {
-            if (y < marginBottom + 30)
-            {
-                page = pdfBuilder.AddPage(595, 842);
-                y = pageHeight - 70;
-            }
-            if (!string.IsNullOrEmpty(line))
-                page.AddText(line, normalSize, new PdfPoint(marginLeft, y), normalFont);
-            y -= lineHeight;
-        }
-
-        return Task.FromResult(pdfBuilder.Build());
+        var parsed = CvParser.Parse(NormalizeLigatures(request.FullText));
+        var document = new CvQuestDocument(parsed);
+        return Task.FromResult(document.GeneratePdf());
     }
 
     private async Task<string> CallClaudeAsync(object requestBody)
@@ -380,33 +332,6 @@ Job context (may be empty):
             return originalCv.Substring(startInOriginal.Value, origIndex - startInOriginal.Value).TrimEnd();
 
         return null;
-    }
-
-    private static List<string> SplitIntoLines(string text, int maxChars)
-    {
-        var result = new List<string>();
-        foreach (var paragraph in text.Split('\n'))
-        {
-            if (string.IsNullOrWhiteSpace(paragraph))
-            {
-                result.Add(string.Empty);
-                continue;
-            }
-            var words = paragraph.Split(' ');
-            var current = new StringBuilder();
-            foreach (var word in words)
-            {
-                if (current.Length + word.Length + 1 > maxChars && current.Length > 0)
-                {
-                    result.Add(current.ToString());
-                    current.Clear();
-                }
-                if (current.Length > 0) current.Append(' ');
-                current.Append(word);
-            }
-            if (current.Length > 0) result.Add(current.ToString());
-        }
-        return result;
     }
 
     private static string ExtractFromPdf(Stream stream)
