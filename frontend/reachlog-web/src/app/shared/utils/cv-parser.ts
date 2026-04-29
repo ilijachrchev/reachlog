@@ -32,7 +32,7 @@ export function parseCvToTiptapDoc(text: string): object {
       content.push({
         type: 'heading',
         attrs: { level: 2 },
-        content: [{ type: 'text', text: line }]
+        content: [{ type: 'text', text: normalizeSectionTitle(line) }]
       });
     } else {
       content.push({
@@ -47,6 +47,14 @@ export function parseCvToTiptapDoc(text: string): object {
   }
 
   return { type: 'doc', content };
+}
+
+function normalizeSectionTitle(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  let collapsed = trimmed.replace(/^([A-Z])\s+([A-Z])/, '$1$2');
+  collapsed = collapsed.replace(/^([A-Z])\s+([A-Z]{2,})/, '$1$2');
+  return collapsed;
 }
 
 function isAllCapsHeading(line: string): boolean {

@@ -17,12 +17,18 @@ internal static class CvParser
 
     private static readonly Regex DatePattern = new(
         @"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|" +
-        @"Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)" +
-        @"\.?\s+\d{4}\s*[–\-]\s*(?:Present|\d{4})" +
-        @"|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|" +
-        @"Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)" +
+        @"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)" +
         @"\.?\s+\d{4}" +
-        @"|\d{4}\s*[–\-]\s*(?:Present|\d{4})",
+        @"(?:\s*[-–]\s*(?:Present|Current|\d{4}|" +
+        @"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|" +
+        @"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}))?" +
+        @"|\d{4}\s*[-–]\s*(?:Present|Current|\d{4})",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled
+    );
+
+    private static readonly Regex WrappedDateEnd = new(
+        @"\d{4}\s*[-–]\s*(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|" +
+        @"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled
     );
 
@@ -47,75 +53,131 @@ internal static class CvParser
 
             if (!IsSectionHeader(lines[i])) { i++; continue; }
 
-            var sectionTitle = lines[i++].Trim();
-            var entries = ParseEntries(lines, ref i);
+            var sectionTitle = NormalizeSectionTitle(lines[i++].Trim());
+            var entries = ParseEntries(lines, ref i, sectionTitle);
             sections.Add(new CvSection(sectionTitle, entries));
         }
 
         return new ParsedCv(name, contact, sections);
     }
 
-    private static List<CvEntry> ParseEntries(List<string> lines, ref int i)
+    private static List<CvEntry> ParseEntries(List<string> lines, ref int i, string sectionTitle)
+    {
+        var sectionLines = new List<string>();
+        while (i < lines.Count && !IsSectionHeader(lines[i]))
+            sectionLines.Add(lines[i++].Trim());
+
+        if (IsSkillsSection(sectionTitle))
+        {
+            var flowLines = sectionLines.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+            if (flowLines.Count == 0) return new List<CvEntry>();
+            return new List<CvEntry>
+            {
+                new(string.Empty, string.Empty, string.Empty, string.Empty,
+                    Array.Empty<string>(), string.Join("\n", flowLines))
+            };
+        }
+
+        return ParseEntryLines(StitchWrappedDates(sectionLines));
+    }
+
+    private static List<string> StitchWrappedDates(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+        for (var k = 0; k < lines.Count; k++)
+        {
+            if (k + 1 < lines.Count && !string.IsNullOrWhiteSpace(lines[k]) && WrappedDateEnd.IsMatch(lines[k]))
+            {
+                var nextLine = lines[k + 1].Trim();
+                var yearMatch = Regex.Match(nextLine, @"\b(\d{4})\s*$");
+                if (yearMatch.Success)
+                {
+                    result.Add(lines[k] + " " + yearMatch.Value.Trim());
+                    var remainder = nextLine[..yearMatch.Index].Trim().TrimEnd(',').Trim();
+                    if (!string.IsNullOrWhiteSpace(remainder))
+                        result.Add(remainder);
+                    k++;
+                    continue;
+                }
+            }
+            result.Add(lines[k]);
+        }
+        return result;
+    }
+
+    private static List<CvEntry> ParseEntryLines(List<string> lines)
     {
         var entries = new List<CvEntry>();
+        var j = 0;
 
-        while (i < lines.Count && !IsSectionHeader(lines[i]))
+        while (j < lines.Count)
         {
-            while (i < lines.Count && string.IsNullOrWhiteSpace(lines[i])) i++;
-            if (i >= lines.Count || IsSectionHeader(lines[i])) break;
+            if (string.IsNullOrWhiteSpace(lines[j])) { j++; continue; }
 
-            var line = lines[i].Trim();
-            if (string.IsNullOrWhiteSpace(line)) { i++; continue; }
+            var line = lines[j];
 
             if (IsBullet(line))
             {
                 if (entries.Count > 0)
                 {
                     var last = entries[^1];
-                    var appended = new List<string>(last.Bullets);
-                    while (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i])
-                           && IsBullet(lines[i].Trim()) && !IsSectionHeader(lines[i]))
-                    {
-                        appended.Add(StripBullet(lines[i].Trim()));
-                        i++;
-                    }
+                    var appended = new List<string>(last.Bullets) { StripBullet(line) };
                     entries[^1] = last with { Bullets = appended };
                 }
-                else i++;
+                j++;
                 continue;
             }
 
-            i++;
-            var (firstText, firstDate) = ExtractDate(line);
-            var organization = firstText.Trim('|', ' ');
-            var date = firstDate;
+            var (text, date) = ExtractDate(line);
+
+            if (string.IsNullOrEmpty(date))
+            {
+                if (entries.Count > 0)
+                {
+                    var last = entries[^1];
+                    if (string.IsNullOrEmpty(last.Role))
+                    {
+                        if (IsTitleContinuation(line))
+                            entries[^1] = last with { Organization = (last.Organization + " " + line).Trim() };
+                        else
+                            entries[^1] = last with { Role = line };
+                    }
+                    else
+                    {
+                        var appended = new List<string>(last.Bullets) { line };
+                        entries[^1] = last with { Bullets = appended };
+                    }
+                }
+                j++;
+                continue;
+            }
+
+            j++;
+            var organization = text.Trim('|', ' ');
             var role = string.Empty;
 
-            if (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i])
-                && !IsSectionHeader(lines[i]) && !IsBullet(lines[i].Trim()))
+            while (j < lines.Count && !string.IsNullOrWhiteSpace(lines[j]) && !IsBullet(lines[j]))
             {
-                var next = lines[i].Trim();
-                var (nextText, nextDate) = ExtractDate(next);
-                if (!string.IsNullOrWhiteSpace(nextDate) && string.IsNullOrEmpty(date))
+                var nextLine = lines[j];
+                var (nextText, nextDate) = ExtractDate(nextLine);
+                if (!string.IsNullOrEmpty(nextDate)) break;
+
+                if (string.IsNullOrEmpty(role))
                 {
-                    role = organization;
-                    organization = nextText.Trim('|', ' ');
-                    date = nextDate;
-                    i++;
+                    if (IsTitleContinuation(nextLine))
+                        organization = (organization + " " + nextLine).Trim();
+                    else
+                        role = nextText.Trim('|', ' ');
+                    j++;
                 }
-                else if (!string.IsNullOrWhiteSpace(nextText) && string.IsNullOrEmpty(nextDate))
-                {
-                    role = nextText.Trim('|', ' ');
-                    i++;
-                }
+                else break;
             }
 
             var bullets = new List<string>();
-            while (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i])
-                   && IsBullet(lines[i].Trim()) && !IsSectionHeader(lines[i]))
+            while (j < lines.Count && !string.IsNullOrWhiteSpace(lines[j]) && IsBullet(lines[j]))
             {
-                bullets.Add(StripBullet(lines[i].Trim()));
-                i++;
+                bullets.Add(StripBullet(lines[j]));
+                j++;
             }
 
             entries.Add(new CvEntry(organization, date, role, string.Empty, bullets));
@@ -146,12 +208,32 @@ internal static class CvParser
     {
         var t = line.Trim();
         if (string.IsNullOrWhiteSpace(t) || t.Length > 50 || t.Length < 3) return false;
-        if (SectionKeywords.Contains(t)) return true;
-        return t == t.ToUpperInvariant()
-               && !char.IsDigit(t[0])
-               && !t.Contains('@')
-               && !t.Contains(':')
-               && !t.Contains(',');
+        var normalized = NormalizeSectionTitle(t);
+        if (SectionKeywords.Contains(normalized)) return true;
+        return normalized == normalized.ToUpperInvariant()
+               && !char.IsDigit(normalized[0])
+               && !normalized.Contains('@')
+               && !normalized.Contains(':')
+               && !normalized.Contains(',');
+    }
+
+    private static string NormalizeSectionTitle(string raw)
+    {
+        var trimmed = raw.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return trimmed;
+        var collapsed = Regex.Replace(trimmed, @"^([A-Z])\s+([A-Z])", "$1$2");
+        collapsed = Regex.Replace(collapsed, @"^([A-Z])\s+([A-Z]{2,})", "$1$2");
+        return collapsed;
+    }
+
+    private static bool IsSkillsSection(string title)
+        => title.IndexOf("SKILLS", StringComparison.OrdinalIgnoreCase) >= 0;
+
+    private static bool IsTitleContinuation(string line)
+    {
+        var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length >= 6) return false;
+        return line.Contains(',') || Regex.IsMatch(line, @"\b\d{4}\b");
     }
 
     private static bool IsBullet(string line)

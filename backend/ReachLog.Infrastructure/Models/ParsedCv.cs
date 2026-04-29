@@ -16,5 +16,6 @@ internal sealed record CvEntry(
     string Date,
     string Role,
     string Location,
-    IReadOnlyList<string> Bullets
+    IReadOnlyList<string> Bullets,
+    string? FlowText = null
 );
