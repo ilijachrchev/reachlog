@@ -98,21 +98,16 @@ internal sealed class CvQuestDocument : IDocument
                 entryCol.Item().Row(row =>
                 {
                     row.RelativeItem().Text(entry.Organization).Bold().FontSize(11);
-                    row.ConstantItem(180).Column(rightCol =>
-                    {
-                        if (hasDate)
-                            rightCol.Item().AlignRight().Text(entry.Date).FontSize(10);
-                        if (hasLocation)
-                            rightCol.Item().AlignRight().Text(entry.Location).Italic().FontSize(10);
-                    });
+                    row.ConstantItem(180).AlignRight().Text(entry.Date).FontSize(10);
                 });
             }
 
-            if (hasRole)
+            if (hasRole || hasLocation)
             {
                 entryCol.Item().Row(row =>
                 {
                     row.RelativeItem().Text(entry.Role).Italic().FontSize(10);
+                    row.ConstantItem(180).AlignRight().Text(entry.Location).Italic().FontSize(10);
                 });
             }
 

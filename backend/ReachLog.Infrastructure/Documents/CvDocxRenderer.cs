@@ -39,10 +39,7 @@ internal static class CvDocxRenderer
                     }
 
                     if (!string.IsNullOrWhiteSpace(entry.Organization))
-                        body.AppendChild(EntryHeaderParagraph(entry.Organization, entry.Date));
-
-                    if (!string.IsNullOrWhiteSpace(entry.Role))
-                        body.AppendChild(EntryRoleParagraph(entry.Role, entry.Location));
+                        body.AppendChild(EntryHeaderTable(entry.Organization, entry.Date, entry.Role, entry.Location));
 
                     foreach (var bullet in entry.Bullets)
                         body.AppendChild(BulletParagraph(bullet));
@@ -127,14 +124,31 @@ internal static class CvDocxRenderer
         return para;
     }
 
-    private static Paragraph EntryHeaderParagraph(string organization, string date)
+    private static Table EntryHeaderTable(string organization, string date, string role, string location)
     {
-        var para = new Paragraph();
-        para.AppendChild(new ParagraphProperties(
-            new SpacingBetweenLines { Before = "80", After = "0" },
-            new Tabs(new TabStop { Val = TabStopValues.Right, Position = RightTabTwips })
+        var table = new Table();
+        table.AppendChild(new TableProperties(
+            new TableWidth { Width = "10080", Type = TableWidthUnitValues.Dxa },
+            new TableLayout { Type = TableLayoutValues.Fixed },
+            new TableBorders(
+                new TopBorder { Val = BorderValues.None },
+                new LeftBorder { Val = BorderValues.None },
+                new BottomBorder { Val = BorderValues.None },
+                new RightBorder { Val = BorderValues.None },
+                new InsideHorizontalBorder { Val = BorderValues.None },
+                new InsideVerticalBorder { Val = BorderValues.None }
+            )
         ));
 
+        var row1 = new TableRow();
+
+        var orgCell = new TableCell();
+        orgCell.AppendChild(new TableCellProperties(
+            new TableCellWidth { Width = "7560", Type = TableWidthUnitValues.Dxa },
+            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+        ));
+        var orgPara = new Paragraph();
+        orgPara.AppendChild(new ParagraphProperties(new SpacingBetweenLines { Before = "80", After = "0" }));
         var orgRun = new Run();
         orgRun.AppendChild(new RunProperties(
             new RunFonts { Ascii = FontName, HighAnsi = FontName },
@@ -142,43 +156,74 @@ internal static class CvDocxRenderer
             new FontSize { Val = "22" }
         ));
         orgRun.AppendChild(new Text(organization) { Space = SpaceProcessingModeValues.Preserve });
-        para.AppendChild(orgRun);
+        orgPara.AppendChild(orgRun);
+        orgCell.AppendChild(orgPara);
 
-        if (!string.IsNullOrWhiteSpace(date))
+        var dateCell = new TableCell();
+        dateCell.AppendChild(new TableCellProperties(
+            new TableCellWidth { Width = "2520", Type = TableWidthUnitValues.Dxa },
+            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+        ));
+        var hasDate = !string.IsNullOrWhiteSpace(date);
+        if (hasDate)
         {
-            para.AppendChild(new Run(new TabChar()));
+            var datePara = new Paragraph();
+            datePara.AppendChild(new ParagraphProperties(
+                new SpacingBetweenLines { Before = "80", After = "0" },
+                new Justification { Val = JustificationValues.Right }
+            ));
             var dateRun = new Run();
             dateRun.AppendChild(new RunProperties(
                 new RunFonts { Ascii = FontName, HighAnsi = FontName },
                 new FontSize { Val = "20" }
             ));
             dateRun.AppendChild(new Text(date) { Space = SpaceProcessingModeValues.Preserve });
-            para.AppendChild(dateRun);
+            datePara.AppendChild(dateRun);
+            dateCell.AppendChild(datePara);
+        }
+        else
+        {
+            dateCell.AppendChild(new Paragraph(new ParagraphProperties(new SpacingBetweenLines { Before = "80", After = "0" })));
         }
 
-        return para;
-    }
+        row1.AppendChild(orgCell);
+        row1.AppendChild(dateCell);
+        table.AppendChild(row1);
 
-    private static Paragraph EntryRoleParagraph(string role, string location)
-    {
-        var para = new Paragraph();
-        para.AppendChild(new ParagraphProperties(
-            new SpacingBetweenLines { Before = "0", After = "0" },
-            new Tabs(new TabStop { Val = TabStopValues.Right, Position = RightTabTwips })
-        ));
+        var hasRole = !string.IsNullOrWhiteSpace(role);
+        var hasLocation = !string.IsNullOrWhiteSpace(location);
 
-        var roleRun = new Run();
-        roleRun.AppendChild(new RunProperties(
-            new RunFonts { Ascii = FontName, HighAnsi = FontName },
-            new Italic(),
-            new FontSize { Val = "20" }
-        ));
-        roleRun.AppendChild(new Text(role) { Space = SpaceProcessingModeValues.Preserve });
-        para.AppendChild(roleRun);
-
-        if (!string.IsNullOrWhiteSpace(location))
+        if (hasRole || hasLocation)
         {
-            para.AppendChild(new Run(new TabChar()));
+            var row2 = new TableRow();
+
+            var roleCell = new TableCell();
+            roleCell.AppendChild(new TableCellProperties(
+                new TableCellWidth { Width = "7560", Type = TableWidthUnitValues.Dxa },
+                new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+            ));
+            var rolePara = new Paragraph();
+            rolePara.AppendChild(new ParagraphProperties(new SpacingBetweenLines { Before = "0", After = "0" }));
+            var roleRun = new Run();
+            roleRun.AppendChild(new RunProperties(
+                new RunFonts { Ascii = FontName, HighAnsi = FontName },
+                new Italic(),
+                new FontSize { Val = "20" }
+            ));
+            roleRun.AppendChild(new Text(role) { Space = SpaceProcessingModeValues.Preserve });
+            rolePara.AppendChild(roleRun);
+            roleCell.AppendChild(rolePara);
+
+            var locCell = new TableCell();
+            locCell.AppendChild(new TableCellProperties(
+                new TableCellWidth { Width = "2520", Type = TableWidthUnitValues.Dxa },
+                new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+            ));
+            var locPara = new Paragraph();
+            locPara.AppendChild(new ParagraphProperties(
+                new SpacingBetweenLines { Before = "0", After = "0" },
+                new Justification { Val = JustificationValues.Right }
+            ));
             var locRun = new Run();
             locRun.AppendChild(new RunProperties(
                 new RunFonts { Ascii = FontName, HighAnsi = FontName },
@@ -186,10 +231,15 @@ internal static class CvDocxRenderer
                 new FontSize { Val = "20" }
             ));
             locRun.AppendChild(new Text(location) { Space = SpaceProcessingModeValues.Preserve });
-            para.AppendChild(locRun);
+            locPara.AppendChild(locRun);
+            locCell.AppendChild(locPara);
+
+            row2.AppendChild(roleCell);
+            row2.AppendChild(locCell);
+            table.AppendChild(row2);
         }
 
-        return para;
+        return table;
     }
 
     private static Paragraph SubEntryTitleParagraph(string title, string? location)
