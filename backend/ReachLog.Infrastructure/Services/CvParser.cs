@@ -32,6 +32,13 @@ internal static class CvParser
         RegexOptions.IgnoreCase | RegexOptions.Compiled
     );
 
+    private static readonly Regex DateRangeHyphen = new(@"\s+-\s+", RegexOptions.Compiled);
+
+    private static readonly Regex LocationSuffix = new(
+        @"\s+([A-Z][a-zA-ZÀ-ž]+(?:,\s*[A-Z][a-zA-ZÀ-ž]+)+)\s*$",
+        RegexOptions.Compiled
+    );
+
     public static ParsedCv Parse(string fullText)
     {
         var lines = fullText.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd()).ToList();
@@ -41,9 +48,9 @@ internal static class CvParser
         var name = i < lines.Count ? lines[i++].Trim() : string.Empty;
 
         while (i < lines.Count && string.IsNullOrWhiteSpace(lines[i])) i++;
-        var contact = string.Empty;
-        if (i < lines.Count && IsContactLine(lines[i]))
-            contact = lines[i++].Trim();
+        var contactLines = new List<string>();
+        while (i < lines.Count && !string.IsNullOrWhiteSpace(lines[i]) && IsContactLine(lines[i]) && !IsSectionHeader(lines[i]))
+            contactLines.Add(lines[i++].Trim());
 
         var sections = new List<CvSection>();
         while (i < lines.Count)
@@ -58,7 +65,7 @@ internal static class CvParser
             sections.Add(new CvSection(sectionTitle, entries));
         }
 
-        return new ParsedCv(name, contact, sections);
+        return new ParsedCv(name, contactLines, sections);
     }
 
     private static List<CvEntry> ParseEntries(List<string> lines, ref int i, string sectionTitle)
@@ -121,8 +128,17 @@ internal static class CvParser
                 if (entries.Count > 0)
                 {
                     var last = entries[^1];
-                    var appended = new List<string>(last.Bullets) { StripBullet(line) };
-                    entries[^1] = last with { Bullets = appended };
+                    if (last.SubEntries is { Count: > 0 })
+                    {
+                        var subList = new List<CvSubEntry>(last.SubEntries);
+                        var lastSub = subList[^1];
+                        subList[^1] = lastSub with { Bullets = new List<string>(lastSub.Bullets) { StripBullet(line) } };
+                        entries[^1] = last with { SubEntries = subList };
+                    }
+                    else
+                    {
+                        entries[^1] = last with { Bullets = new List<string>(last.Bullets) { StripBullet(line) } };
+                    }
                 }
                 j++;
                 continue;
@@ -140,12 +156,28 @@ internal static class CvParser
                         if (IsTitleContinuation(line))
                             entries[^1] = last with { Organization = (last.Organization + " " + line).Trim() };
                         else
-                            entries[^1] = last with { Role = line };
+                        {
+                            var (role, loc) = SplitRoleAndLocation(line);
+                            entries[^1] = last with { Role = role, Location = loc };
+                        }
+                    }
+                    else if (IsSubEntryHeader(line))
+                    {
+                        var (subTitle, subLoc) = SplitRoleAndLocation(line);
+                        var subList = last.SubEntries != null ? new List<CvSubEntry>(last.SubEntries) : new List<CvSubEntry>();
+                        subList.Add(new CvSubEntry(subTitle, string.IsNullOrEmpty(subLoc) ? null : subLoc, new List<string>()));
+                        entries[^1] = last with { SubEntries = subList };
+                    }
+                    else if (last.SubEntries is { Count: > 0 })
+                    {
+                        var subList = new List<CvSubEntry>(last.SubEntries);
+                        var lastSub = subList[^1];
+                        subList[^1] = lastSub with { Bullets = new List<string>(lastSub.Bullets) { line } };
+                        entries[^1] = last with { SubEntries = subList };
                     }
                     else
                     {
-                        var appended = new List<string>(last.Bullets) { line };
-                        entries[^1] = last with { Bullets = appended };
+                        entries[^1] = last with { Bullets = new List<string>(last.Bullets) { line } };
                     }
                 }
                 j++;
@@ -154,7 +186,8 @@ internal static class CvParser
 
             j++;
             var organization = text.Trim('|', ' ');
-            var role = string.Empty;
+            var entryRole = string.Empty;
+            var entryLocation = string.Empty;
 
             while (j < lines.Count && !string.IsNullOrWhiteSpace(lines[j]) && !IsBullet(lines[j]))
             {
@@ -162,12 +195,12 @@ internal static class CvParser
                 var (nextText, nextDate) = ExtractDate(nextLine);
                 if (!string.IsNullOrEmpty(nextDate)) break;
 
-                if (string.IsNullOrEmpty(role))
+                if (string.IsNullOrEmpty(entryRole))
                 {
                     if (IsTitleContinuation(nextLine))
                         organization = (organization + " " + nextLine).Trim();
                     else
-                        role = nextText.Trim('|', ' ');
+                        (entryRole, entryLocation) = SplitRoleAndLocation(nextText.Trim('|', ' '));
                     j++;
                 }
                 else break;
@@ -180,7 +213,22 @@ internal static class CvParser
                 j++;
             }
 
-            entries.Add(new CvEntry(organization, date, role, string.Empty, bullets));
+            entries.Add(new CvEntry(organization, date, entryRole, entryLocation, bullets));
+        }
+
+        for (var k = 0; k < entries.Count; k++)
+        {
+            var e = entries[k];
+            var mergedBullets = MergeBullets(new List<string>(e.Bullets));
+            if (e.SubEntries is { Count: > 0 })
+            {
+                var mergedSubs = e.SubEntries.Select(se => se with { Bullets = MergeBullets(new List<string>(se.Bullets)) }).ToList();
+                entries[k] = e with { Bullets = mergedBullets, SubEntries = mergedSubs };
+            }
+            else
+            {
+                entries[k] = e with { Bullets = mergedBullets };
+            }
         }
 
         return entries;
@@ -191,11 +239,50 @@ internal static class CvParser
         var m = DatePattern.Match(line);
         if (!m.Success) return (line, string.Empty);
 
-        var date = m.Value.Trim();
+        var date = DateRangeHyphen.Replace(m.Value.Trim(), " – ");
         var before = line[..m.Index].TrimEnd().TrimEnd('|').TrimEnd();
         var after = line[(m.Index + m.Length)..].TrimStart().TrimStart('|').TrimStart();
         var text = string.IsNullOrWhiteSpace(after) ? before : $"{before} {after}".Trim();
         return (text, date);
+    }
+
+    private static (string role, string location) SplitRoleAndLocation(string line)
+    {
+        var m = LocationSuffix.Match(line);
+        if (!m.Success) return (line, string.Empty);
+        return (line[..m.Index].Trim(), m.Groups[1].Value.Trim());
+    }
+
+    private static bool IsSubEntryHeader(string line)
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed)) return false;
+        if (trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?') || trimmed.EndsWith(','))
+            return false;
+        if (DatePattern.IsMatch(trimmed)) return false;
+        var words = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length < 2 || words.Length > 12) return false;
+        var upperCount = words.Count(w => w.Length > 0 && char.IsUpper(w[0]));
+        return (double)upperCount / words.Length >= 0.6;
+    }
+
+    private static List<string> MergeBullets(List<string> bullets)
+    {
+        var merged = new List<string>();
+        var buffer = string.Empty;
+        foreach (var line in bullets)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            buffer = string.IsNullOrEmpty(buffer) ? line : buffer + " " + line;
+            if (buffer[^1] is '.' or '!' or '?')
+            {
+                merged.Add(buffer);
+                buffer = string.Empty;
+            }
+        }
+        if (!string.IsNullOrEmpty(buffer))
+            merged.Add(buffer);
+        return merged;
     }
 
     private static bool IsContactLine(string line)

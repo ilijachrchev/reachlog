@@ -43,11 +43,11 @@ internal sealed class CvQuestDocument : IDocument
             .Bold()
             .FontFamily(CvFonts.Family);
 
-        if (!string.IsNullOrWhiteSpace(_cv.Contact))
+        foreach (var contactLine in _cv.ContactLines)
         {
             col.Item()
                 .PaddingTop(3)
-                .Text(_cv.Contact)
+                .Text(contactLine)
                 .FontSize(9.5f)
                 .FontColor("#333333");
         }
@@ -98,18 +98,21 @@ internal sealed class CvQuestDocument : IDocument
                 entryCol.Item().Row(row =>
                 {
                     row.RelativeItem().Text(entry.Organization).Bold().FontSize(11);
-                    if (hasDate)
-                        row.AutoItem().Text(entry.Date).FontSize(10);
+                    row.ConstantItem(180).Column(rightCol =>
+                    {
+                        if (hasDate)
+                            rightCol.Item().AlignRight().Text(entry.Date).FontSize(10);
+                        if (hasLocation)
+                            rightCol.Item().AlignRight().Text(entry.Location).Italic().FontSize(10);
+                    });
                 });
             }
 
-            if (hasRole || hasLocation)
+            if (hasRole)
             {
                 entryCol.Item().Row(row =>
                 {
                     row.RelativeItem().Text(entry.Role).Italic().FontSize(10);
-                    if (hasLocation)
-                        row.AutoItem().Text(entry.Location).FontSize(10);
                 });
             }
 
@@ -120,6 +123,27 @@ internal sealed class CvQuestDocument : IDocument
                     row.ConstantItem(12).Text("•").FontSize(10);
                     row.RelativeItem().Text(bullet).FontSize(10);
                 });
+            }
+
+            if (entry.SubEntries is { Count: > 0 })
+            {
+                foreach (var sub in entry.SubEntries)
+                {
+                    entryCol.Item().PaddingTop(3).Row(row =>
+                    {
+                        row.RelativeItem().Text(sub.Title).Bold().FontSize(10);
+                        if (!string.IsNullOrEmpty(sub.Location))
+                            row.ConstantItem(150).AlignRight().Text(sub.Location).Italic().FontSize(10);
+                    });
+                    foreach (var bullet in sub.Bullets)
+                    {
+                        entryCol.Item().PaddingTop(1).Row(row =>
+                        {
+                            row.ConstantItem(12).Text("•").FontSize(10);
+                            row.RelativeItem().Text(bullet).FontSize(10);
+                        });
+                    }
+                }
             }
         });
     }
