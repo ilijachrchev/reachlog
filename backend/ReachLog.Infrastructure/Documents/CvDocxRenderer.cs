@@ -22,8 +22,8 @@ internal static class CvDocxRenderer
 
             body.AppendChild(NameParagraph(cv.Name));
 
-            if (!string.IsNullOrWhiteSpace(cv.Contact))
-                body.AppendChild(ContactParagraph(cv.Contact));
+            foreach (var contactLine in cv.ContactLines)
+                body.AppendChild(ContactParagraph(contactLine));
 
             foreach (var section in cv.Sections)
             {
@@ -46,6 +46,16 @@ internal static class CvDocxRenderer
 
                     foreach (var bullet in entry.Bullets)
                         body.AppendChild(BulletParagraph(bullet));
+
+                    if (entry.SubEntries is { Count: > 0 })
+                    {
+                        foreach (var sub in entry.SubEntries)
+                        {
+                            body.AppendChild(SubEntryTitleParagraph(sub.Title, sub.Location));
+                            foreach (var bullet in sub.Bullets)
+                                body.AppendChild(BulletParagraph(bullet));
+                        }
+                    }
                 }
             }
 
@@ -172,6 +182,40 @@ internal static class CvDocxRenderer
             var locRun = new Run();
             locRun.AppendChild(new RunProperties(
                 new RunFonts { Ascii = FontName, HighAnsi = FontName },
+                new Italic(),
+                new FontSize { Val = "20" }
+            ));
+            locRun.AppendChild(new Text(location) { Space = SpaceProcessingModeValues.Preserve });
+            para.AppendChild(locRun);
+        }
+
+        return para;
+    }
+
+    private static Paragraph SubEntryTitleParagraph(string title, string? location)
+    {
+        var para = new Paragraph();
+        para.AppendChild(new ParagraphProperties(
+            new SpacingBetweenLines { Before = "60", After = "0" },
+            new Tabs(new TabStop { Val = TabStopValues.Right, Position = RightTabTwips })
+        ));
+
+        var titleRun = new Run();
+        titleRun.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new Bold(),
+            new FontSize { Val = "20" }
+        ));
+        titleRun.AppendChild(new Text(title) { Space = SpaceProcessingModeValues.Preserve });
+        para.AppendChild(titleRun);
+
+        if (!string.IsNullOrEmpty(location))
+        {
+            para.AppendChild(new Run(new TabChar()));
+            var locRun = new Run();
+            locRun.AppendChild(new RunProperties(
+                new RunFonts { Ascii = FontName, HighAnsi = FontName },
+                new Italic(),
                 new FontSize { Val = "20" }
             ));
             locRun.AppendChild(new Text(location) { Space = SpaceProcessingModeValues.Preserve });

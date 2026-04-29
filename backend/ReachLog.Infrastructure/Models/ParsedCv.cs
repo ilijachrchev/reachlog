@@ -2,7 +2,7 @@ namespace ReachLog.Infrastructure.Models;
 
 internal sealed record ParsedCv(
     string Name,
-    string Contact,
+    IReadOnlyList<string> ContactLines,
     IReadOnlyList<CvSection> Sections
 );
 
@@ -17,5 +17,12 @@ internal sealed record CvEntry(
     string Role,
     string Location,
     IReadOnlyList<string> Bullets,
-    string? FlowText = null
+    string? FlowText = null,
+    IReadOnlyList<CvSubEntry>? SubEntries = null
+);
+
+internal sealed record CvSubEntry(
+    string Title,
+    string? Location,
+    IReadOnlyList<string> Bullets
 );
