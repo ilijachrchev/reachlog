@@ -11,6 +11,7 @@ using ReachLog.Infrastructure.Repositories;
 
 QuestPDF.Settings.License = LicenseType.Community;
 CvFonts.TryRegisterInter(AppDomain.CurrentDomain.BaseDirectory);
+Console.WriteLine($"[CvFonts] Family resolved to: {CvFonts.Family}");
 
 var builder = WebApplication.CreateBuilder(args);
 
