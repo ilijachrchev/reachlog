@@ -39,6 +39,11 @@ internal static class CvParser
         RegexOptions.Compiled
     );
 
+    private static readonly Regex SingleWordLocationSuffix = new(
+        @"\s+([A-Z][a-zA-ZÀ-ž]+)\s*$",
+        RegexOptions.Compiled
+    );
+
     public static ParsedCv Parse(string fullText)
     {
         var lines = fullText.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd()).ToList();
@@ -249,8 +254,18 @@ internal static class CvParser
     private static (string role, string location) SplitRoleAndLocation(string line)
     {
         var m = LocationSuffix.Match(line);
-        if (!m.Success) return (line, string.Empty);
-        return (line[..m.Index].Trim(), m.Groups[1].Value.Trim());
+        if (m.Success) return (line[..m.Index].Trim(), m.Groups[1].Value.Trim());
+
+        var sw = SingleWordLocationSuffix.Match(line);
+        if (sw.Success)
+        {
+            var candidate = sw.Groups[1].Value;
+            var before = line[..sw.Index].TrimEnd();
+            if (before.EndsWith(candidate, StringComparison.OrdinalIgnoreCase))
+                return (before, candidate);
+        }
+
+        return (line, string.Empty);
     }
 
     private static bool IsSubEntryHeader(string line)
