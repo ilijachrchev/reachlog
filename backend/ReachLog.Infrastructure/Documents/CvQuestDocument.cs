@@ -10,6 +10,12 @@ internal sealed class CvQuestDocument : IDocument
     private static readonly System.Text.RegularExpressions.Regex CertSplitPattern =
         new(@"\s(?=[A-Z][a-z]+(?:,|\s)).*\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+    private static readonly System.Text.RegularExpressions.Regex CertEndsWithYearPattern =
+        new(@"\d{4}\)?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex CertNextContainsYearPattern =
+        new(@"\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly ParsedCv _cv;
 
     internal CvQuestDocument(ParsedCv cv) => _cv = cv;
@@ -87,6 +93,7 @@ internal sealed class CvQuestDocument : IDocument
             col.Item().PaddingTop(2).Column(flowCol =>
             {
                 var inCertificationsBlock = false;
+                var certificationParagraphs = new List<string>();
 
                 foreach (var paragraph in paragraphs)
                 {
@@ -99,7 +106,7 @@ internal sealed class CvQuestDocument : IDocument
 
                     if (inCertificationsBlock)
                     {
-                        RenderCertificationEntry(flowCol, paragraph);
+                        certificationParagraphs.Add(paragraph);
                         continue;
                     }
 
@@ -118,6 +125,13 @@ internal sealed class CvQuestDocument : IDocument
                     {
                         flowCol.Item().PaddingBottom(2).Text(paragraph).FontSize(10);
                     }
+                }
+
+                if (certificationParagraphs.Count > 0)
+                {
+                    var stitched = StitchWrappedCertifications(certificationParagraphs);
+                    foreach (var cert in stitched)
+                        RenderCertificationEntry(flowCol, cert);
                 }
             });
             return;
@@ -211,5 +225,43 @@ internal sealed class CvQuestDocument : IDocument
         if (match.Success) return match.Index;
 
         return -1;
+    }
+
+    private static List<string> StitchWrappedCertifications(List<string> paragraphs)
+    {
+        var result = new List<string>();
+        var i = 0;
+        while (i < paragraphs.Count)
+        {
+            var current = paragraphs[i];
+            while (i + 1 < paragraphs.Count && IsCertificationContinuation(current, paragraphs[i + 1]))
+            {
+                current = current.TrimEnd() + " " + paragraphs[i + 1].TrimStart();
+                i++;
+            }
+            result.Add(current);
+            i++;
+        }
+        return result;
+    }
+
+    private static bool IsCertificationContinuation(string current, string next)
+    {
+        if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(next))
+            return false;
+
+        var trimmed = current.TrimEnd();
+        var endsWithComma = trimmed.EndsWith(',');
+        var endsWithYear = CertEndsWithYearPattern.IsMatch(trimmed);
+        var endsWithTerminal = trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?');
+
+        if (endsWithYear || endsWithTerminal) return false;
+        if (endsWithComma) return true;
+
+        var nextLooksLikeContinuation =
+            next.Length < 50 ||
+            CertNextContainsYearPattern.IsMatch(next);
+
+        return nextLooksLikeContinuation;
     }
 }

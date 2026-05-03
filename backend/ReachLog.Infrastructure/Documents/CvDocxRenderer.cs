@@ -38,6 +38,7 @@ internal static class CvDocxRenderer
                             .Where(p => p.Length > 0)
                             .ToList();
                         var inCerts = false;
+                        var certParagraphs = new List<string>();
                         foreach (var paragraph in flowParagraphs)
                         {
                             if (paragraph.Equals("Certifications & Training", StringComparison.OrdinalIgnoreCase))
@@ -48,7 +49,7 @@ internal static class CvDocxRenderer
                             }
                             if (inCerts)
                             {
-                                body.AppendChild(CertificationEntryTable(paragraph));
+                                certParagraphs.Add(paragraph);
                                 continue;
                             }
                             var colonIndex = paragraph.IndexOf(':');
@@ -62,6 +63,12 @@ internal static class CvDocxRenderer
                             {
                                 body.AppendChild(FlowTextParagraph(paragraph));
                             }
+                        }
+                        if (certParagraphs.Count > 0)
+                        {
+                            var stitched = StitchWrappedCertifications(certParagraphs);
+                            foreach (var cert in stitched)
+                                body.AppendChild(CertificationEntryTable(cert));
                         }
                         continue;
                     }
@@ -433,6 +440,12 @@ internal static class CvDocxRenderer
     private static readonly System.Text.RegularExpressions.Regex DocxCertSplitPattern =
         new(@"\s(?=[A-Z][a-z]+(?:,|\s)).*\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+    private static readonly System.Text.RegularExpressions.Regex DocxCertEndsWithYearPattern =
+        new(@"\d{4}\)?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex DocxCertNextContainsYearPattern =
+        new(@"\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private static int DocxFindCertificationSplit(string line)
     {
         var multiSpace = line.IndexOf("  ");
@@ -442,6 +455,44 @@ internal static class CvDocxRenderer
         if (match.Success) return match.Index;
 
         return -1;
+    }
+
+    private static List<string> StitchWrappedCertifications(List<string> paragraphs)
+    {
+        var result = new List<string>();
+        var i = 0;
+        while (i < paragraphs.Count)
+        {
+            var current = paragraphs[i];
+            while (i + 1 < paragraphs.Count && IsCertificationContinuation(current, paragraphs[i + 1]))
+            {
+                current = current.TrimEnd() + " " + paragraphs[i + 1].TrimStart();
+                i++;
+            }
+            result.Add(current);
+            i++;
+        }
+        return result;
+    }
+
+    private static bool IsCertificationContinuation(string current, string next)
+    {
+        if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(next))
+            return false;
+
+        var trimmed = current.TrimEnd();
+        var endsWithComma = trimmed.EndsWith(',');
+        var endsWithYear = DocxCertEndsWithYearPattern.IsMatch(trimmed);
+        var endsWithTerminal = trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?');
+
+        if (endsWithYear || endsWithTerminal) return false;
+        if (endsWithComma) return true;
+
+        var nextLooksLikeContinuation =
+            next.Length < 50 ||
+            DocxCertNextContainsYearPattern.IsMatch(next);
+
+        return nextLooksLikeContinuation;
     }
 
     private static Paragraph FlowTextParagraph(string text)
