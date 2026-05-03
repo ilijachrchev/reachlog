@@ -85,7 +85,7 @@ internal static class CvParser
             };
         }
 
-        return ParseEntryLines(StitchWrappedDates(sectionLines));
+        return ParseEntryLines(StitchWrappedDates(sectionLines), sectionTitle);
     }
 
     private static List<string> StitchWrappedDates(List<string> lines)
@@ -112,7 +112,7 @@ internal static class CvParser
         return result;
     }
 
-    private static List<CvEntry> ParseEntryLines(List<string> lines)
+    private static List<CvEntry> ParseEntryLines(List<string> lines, string sectionTitle = "")
     {
         var entries = new List<CvEntry>();
         var j = 0;
@@ -155,15 +155,30 @@ internal static class CvParser
                     {
                         if (IsTitleContinuation(line))
                             entries[^1] = last with { Organization = (last.Organization + " " + line).Trim() };
-                        else
+                        else if (!LooksLikeBullet(line) && !SectionTypicallyHasNoRole(sectionTitle))
                         {
                             var (role, loc) = SplitRoleAndLocation(line);
                             entries[^1] = last with { Role = role, Location = loc };
                         }
+                        else
+                            entries[^1] = last with { Bullets = new List<string>(last.Bullets) { line } };
                     }
                     else if (IsSubEntryHeader(line))
                     {
                         var (subTitle, subLoc) = SplitRoleAndLocation(line);
+                        if (string.IsNullOrEmpty(subLoc))
+                        {
+                            var words = subTitle.TrimEnd().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                            if (words.Length >= 3)
+                            {
+                                var lastWord = words[^1];
+                                if (char.IsUpper(lastWord[0]) && words[..^1].Any(w => string.Equals(w, lastWord, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    subTitle = string.Join(' ', words[..^1]);
+                                    subLoc = lastWord;
+                                }
+                            }
+                        }
                         var subList = last.SubEntries != null ? new List<CvSubEntry>(last.SubEntries) : new List<CvSubEntry>();
                         subList.Add(new CvSubEntry(subTitle, string.IsNullOrEmpty(subLoc) ? null : subLoc, new List<string>()));
                         entries[^1] = last with { SubEntries = subList };
@@ -198,10 +213,17 @@ internal static class CvParser
                 if (string.IsNullOrEmpty(entryRole))
                 {
                     if (IsTitleContinuation(nextLine))
+                    {
                         organization = (organization + " " + nextLine).Trim();
-                    else
+                        j++;
+                    }
+                    else if (!LooksLikeBullet(nextLine) && !SectionTypicallyHasNoRole(sectionTitle))
+                    {
                         (entryRole, entryLocation) = SplitRoleAndLocation(nextText.Trim('|', ' '));
-                    j++;
+                        j++;
+                    }
+                    else
+                        break;
                 }
                 else break;
             }
@@ -264,6 +286,36 @@ internal static class CvParser
         if (words.Length < 2 || words.Length > 12) return false;
         var upperCount = words.Count(w => w.Length > 0 && char.IsUpper(w[0]));
         return (double)upperCount / words.Length >= 0.6;
+    }
+
+    private static readonly string[] BulletStartVerbs = new[]
+    {
+        "Led", "Built", "Developed", "Designed", "Designing", "Created", "Architected",
+        "Engineered", "Implemented", "Implementing", "Iterating", "Iterated",
+        "Maintained", "Managed", "Provide", "Provided", "Assist", "Assisted",
+        "Lead", "Represent", "Represented", "Support", "Supported", "Contribute",
+        "Contributed", "Use", "Used", "Coordinated", "Coordinating",
+        "Collaborated", "Collaborating", "Participated", "Conducted",
+        "Optimized", "Improved", "Reduced", "Increased", "Delivered",
+        "Researched", "Analyzed", "Tested", "Deployed", "Wrote", "Authored",
+        "Job"
+    };
+
+    private static bool LooksLikeBullet(string line)
+    {
+        var trimmed = line.TrimStart();
+        foreach (var verb in BulletStartVerbs)
+        {
+            if (trimmed.StartsWith(verb + " ", StringComparison.Ordinal))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool SectionTypicallyHasNoRole(string sectionTitle)
+    {
+        var upper = sectionTitle.ToUpperInvariant();
+        return upper.Contains("PROJECTS") || upper.Contains("ORGANIZATIONS");
     }
 
     private static List<string> MergeBullets(List<string> bullets)
