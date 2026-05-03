@@ -7,6 +7,9 @@ namespace ReachLog.Infrastructure.Documents;
 
 internal sealed class CvQuestDocument : IDocument
 {
+    private static readonly System.Text.RegularExpressions.Regex CertSplitPattern =
+        new(@"\s(?=[A-Z][a-z]+(?:,|\s)).*\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly ParsedCv _cv;
 
     internal CvQuestDocument(ParsedCv cv) => _cv = cv;
@@ -76,10 +79,46 @@ internal sealed class CvQuestDocument : IDocument
     {
         if (entry.FlowText != null)
         {
-            col.Item().PaddingTop(4).Column(flowCol =>
+            var paragraphs = entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim())
+                .Where(p => p.Length > 0)
+                .ToList();
+
+            col.Item().PaddingTop(2).Column(flowCol =>
             {
-                foreach (var paragraph in entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                    flowCol.Item().PaddingBottom(4).Text(paragraph.Trim()).FontSize(10);
+                var inCertificationsBlock = false;
+
+                foreach (var paragraph in paragraphs)
+                {
+                    if (paragraph.Equals("Certifications & Training", StringComparison.OrdinalIgnoreCase))
+                    {
+                        flowCol.Item().PaddingTop(6).Text(paragraph).Italic().FontSize(10);
+                        inCertificationsBlock = true;
+                        continue;
+                    }
+
+                    if (inCertificationsBlock)
+                    {
+                        RenderCertificationEntry(flowCol, paragraph);
+                        continue;
+                    }
+
+                    var colonIndex = paragraph.IndexOf(':');
+                    if (colonIndex > 0 && colonIndex < 60)
+                    {
+                        var label = paragraph.Substring(0, colonIndex + 1);
+                        var rest = paragraph.Substring(colonIndex + 1);
+                        flowCol.Item().PaddingBottom(2).Text(t =>
+                        {
+                            t.Span(label).SemiBold().FontSize(10);
+                            t.Span(rest).FontSize(10);
+                        });
+                    }
+                    else
+                    {
+                        flowCol.Item().PaddingBottom(2).Text(paragraph).FontSize(10);
+                    }
+                }
             });
             return;
         }
@@ -91,7 +130,7 @@ internal sealed class CvQuestDocument : IDocument
 
         if (!hasOrg && entry.Bullets.Count == 0) return;
 
-        col.Item().PaddingTop(4).Column(entryCol =>
+        col.Item().PaddingTop(2).Column(entryCol =>
         {
             if (hasOrg)
             {
@@ -142,5 +181,35 @@ internal sealed class CvQuestDocument : IDocument
                 }
             }
         });
+    }
+
+    private static void RenderCertificationEntry(ColumnDescriptor col, string line)
+    {
+        var splitIdx = FindCertificationSplit(line);
+        if (splitIdx < 0)
+        {
+            col.Item().PaddingTop(2).Text(line).FontSize(10);
+            return;
+        }
+
+        var name = line[..splitIdx].Trim();
+        var source = line[splitIdx..].Trim();
+
+        col.Item().PaddingTop(2).Row(row =>
+        {
+            row.RelativeItem().Text(name).SemiBold().FontSize(10).FontFamily(CvFonts.Family);
+            row.ConstantItem(220).AlignRight().Text(source).Italic().FontSize(10).FontFamily(CvFonts.Family);
+        });
+    }
+
+    private static int FindCertificationSplit(string line)
+    {
+        var multiSpace = line.IndexOf("  ");
+        if (multiSpace > 0) return multiSpace;
+
+        var match = CertSplitPattern.Match(line);
+        if (match.Success) return match.Index;
+
+        return -1;
     }
 }
