@@ -101,7 +101,8 @@ internal sealed class CvQuestDocument : IDocument
                     row.ConstantItem(180).AlignRight().Text(entry.Date).FontSize(10);
                 });
             }
-
+            
+            Console.WriteLine($"[CvQuest] org={entry.Organization} | role={entry.Role} | location={entry.Location} | hasRole={hasRole}");
             if (hasRole || hasLocation)
             {
                 entryCol.Item().Row(row =>

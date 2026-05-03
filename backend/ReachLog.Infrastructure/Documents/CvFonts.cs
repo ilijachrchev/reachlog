@@ -31,15 +31,12 @@ public static class CvFonts
             "Inter-BoldItalic.ttf"
         };
 
-        var existing = candidates
-            .Select(f => Path.Combine(dir, f))
-            .Where(File.Exists)
-            .ToList();
-
+        var existing = candidates.Where(f => File.Exists(Path.Combine(dir, f))).ToList();
         if (existing.Count == 0) return;
 
-        foreach (var path in existing)
+        foreach (var f in existing)
         {
+            var path = Path.Combine(dir, f);
             using var stream = File.OpenRead(path);
             FontManager.RegisterFont(stream);
         }
