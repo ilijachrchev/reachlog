@@ -107,8 +107,8 @@ internal sealed class CvQuestDocument : IDocument
             {
                 entryCol.Item().Row(row =>
                 {
-                    row.RelativeItem().Text(entry.Role).Italic().FontSize(10);
-                    row.ConstantItem(180).AlignRight().Text(entry.Location).Italic().FontSize(10);
+                    row.RelativeItem().Text(entry.Role).FontFamily(CvFonts.Family).Italic().FontSize(10);
+                    row.ConstantItem(180).AlignRight().Text(entry.Location).FontFamily(CvFonts.Family).Italic().FontSize(10);
                 });
             }
 
@@ -129,7 +129,7 @@ internal sealed class CvQuestDocument : IDocument
                     {
                         row.RelativeItem().Text(sub.Title).Bold().FontSize(10);
                         if (!string.IsNullOrEmpty(sub.Location))
-                            row.ConstantItem(150).AlignRight().Text(sub.Location).Italic().FontSize(10);
+                            row.ConstantItem(150).AlignRight().Text(sub.Location).FontFamily(CvFonts.Family).Italic().FontSize(10);
                     });
                     foreach (var bullet in sub.Bullets)
                     {
