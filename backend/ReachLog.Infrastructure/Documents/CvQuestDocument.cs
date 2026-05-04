@@ -7,6 +7,15 @@ namespace ReachLog.Infrastructure.Documents;
 
 internal sealed class CvQuestDocument : IDocument
 {
+    private static readonly System.Text.RegularExpressions.Regex CertSplitPattern =
+        new(@"\s(?=[A-Z][a-z]+(?:,|\s)).*\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex CertEndsWithYearPattern =
+        new(@"\d{4}\)?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex CertNextContainsYearPattern =
+        new(@"\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly ParsedCv _cv;
 
     internal CvQuestDocument(ParsedCv cv) => _cv = cv;
@@ -76,10 +85,54 @@ internal sealed class CvQuestDocument : IDocument
     {
         if (entry.FlowText != null)
         {
-            col.Item().PaddingTop(4).Column(flowCol =>
+            var paragraphs = entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim())
+                .Where(p => p.Length > 0)
+                .ToList();
+
+            col.Item().PaddingTop(2).Column(flowCol =>
             {
-                foreach (var paragraph in entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                    flowCol.Item().PaddingBottom(4).Text(paragraph.Trim()).FontSize(10);
+                var inCertificationsBlock = false;
+                var certificationParagraphs = new List<string>();
+
+                foreach (var paragraph in paragraphs)
+                {
+                    if (paragraph.Equals("Certifications & Training", StringComparison.OrdinalIgnoreCase))
+                    {
+                        flowCol.Item().PaddingTop(6).Text(paragraph).Italic().FontSize(10);
+                        inCertificationsBlock = true;
+                        continue;
+                    }
+
+                    if (inCertificationsBlock)
+                    {
+                        certificationParagraphs.Add(paragraph);
+                        continue;
+                    }
+
+                    var colonIndex = paragraph.IndexOf(':');
+                    if (colonIndex > 0 && colonIndex < 60)
+                    {
+                        var label = paragraph.Substring(0, colonIndex + 1);
+                        var rest = paragraph.Substring(colonIndex + 1);
+                        flowCol.Item().PaddingBottom(2).Text(t =>
+                        {
+                            t.Span(label).SemiBold().FontSize(10);
+                            t.Span(rest).FontSize(10);
+                        });
+                    }
+                    else
+                    {
+                        flowCol.Item().PaddingBottom(2).Text(paragraph).FontSize(10);
+                    }
+                }
+
+                if (certificationParagraphs.Count > 0)
+                {
+                    var stitched = StitchWrappedCertifications(certificationParagraphs);
+                    foreach (var cert in stitched)
+                        RenderCertificationEntry(flowCol, cert);
+                }
             });
             return;
         }
@@ -91,7 +144,7 @@ internal sealed class CvQuestDocument : IDocument
 
         if (!hasOrg && entry.Bullets.Count == 0) return;
 
-        col.Item().PaddingTop(4).Column(entryCol =>
+        col.Item().PaddingTop(2).Column(entryCol =>
         {
             if (hasOrg)
             {
@@ -142,5 +195,104 @@ internal sealed class CvQuestDocument : IDocument
                 }
             }
         });
+    }
+
+    private static void RenderCertificationEntry(ColumnDescriptor col, string line)
+    {
+        var splitIdx = FindCertificationSplit(line);
+        if (splitIdx < 0)
+        {
+            col.Item().PaddingTop(2).Text(line).FontSize(10);
+            return;
+        }
+
+        var name = line[..splitIdx].Trim();
+        var source = line[splitIdx..].Trim();
+
+        col.Item().PaddingTop(2).Row(row =>
+        {
+            row.RelativeItem().Text(name).SemiBold().FontSize(10).FontFamily(CvFonts.Family);
+            row.ConstantItem(220).AlignRight().Text(source).Italic().FontSize(10).FontFamily(CvFonts.Family);
+        });
+    }
+
+    private static int FindCertificationSplit(string line)
+    {
+        var multiSpace = line.IndexOf("  ");
+        if (multiSpace > 0) return multiSpace;
+
+        var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length < 6) return -1;
+
+        var charPositions = new int[words.Length];
+        var pos = 0;
+        for (var i = 0; i < words.Length; i++)
+        {
+            charPositions[i] = pos;
+            pos += words[i].Length + 1;
+        }
+
+        var firstSignalIndex = -1;
+        for (var i = 0; i < words.Length; i++)
+        {
+            var word = words[i];
+            if (word.Contains(',') || word.Contains('(') || System.Text.RegularExpressions.Regex.IsMatch(word, "^\\d{4}"))
+            {
+                firstSignalIndex = i;
+                break;
+            }
+        }
+
+        if (firstSignalIndex < 3) return -1;
+
+        var splitIndex = firstSignalIndex;
+        while (splitIndex > 3
+               && words[splitIndex - 1].Length > 0
+               && char.IsUpper(words[splitIndex - 1][0])
+               && !words[splitIndex - 1].Contains(',')
+               && !words[splitIndex - 1].Contains('('))
+        {
+            splitIndex--;
+        }
+
+        return charPositions[splitIndex] - 1;
+    }
+
+    private static List<string> StitchWrappedCertifications(List<string> paragraphs)
+    {
+        var result = new List<string>();
+        var i = 0;
+        while (i < paragraphs.Count)
+        {
+            var current = paragraphs[i];
+            while (i + 1 < paragraphs.Count && IsCertificationContinuation(current, paragraphs[i + 1]))
+            {
+                current = current.TrimEnd() + " " + paragraphs[i + 1].TrimStart();
+                i++;
+            }
+            result.Add(current);
+            i++;
+        }
+        return result;
+    }
+
+    private static bool IsCertificationContinuation(string current, string next)
+    {
+        if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(next))
+            return false;
+
+        var trimmed = current.TrimEnd();
+        var endsWithComma = trimmed.EndsWith(',');
+        var endsWithYear = CertEndsWithYearPattern.IsMatch(trimmed);
+        var endsWithTerminal = trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?');
+
+        if (endsWithYear || endsWithTerminal) return false;
+        if (endsWithComma) return true;
+
+        var nextLooksLikeContinuation =
+            next.Length < 50 ||
+            CertNextContainsYearPattern.IsMatch(next);
+
+        return nextLooksLikeContinuation;
     }
 }

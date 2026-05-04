@@ -33,8 +33,43 @@ internal static class CvDocxRenderer
                 {
                     if (entry.FlowText != null)
                     {
-                        foreach (var paragraph in entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                            body.AppendChild(FlowTextParagraph(paragraph.Trim()));
+                        var flowParagraphs = entry.FlowText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(p => p.Trim())
+                            .Where(p => p.Length > 0)
+                            .ToList();
+                        var inCerts = false;
+                        var certParagraphs = new List<string>();
+                        foreach (var paragraph in flowParagraphs)
+                        {
+                            if (paragraph.Equals("Certifications & Training", StringComparison.OrdinalIgnoreCase))
+                            {
+                                body.AppendChild(CertificationHeadingParagraph(paragraph));
+                                inCerts = true;
+                                continue;
+                            }
+                            if (inCerts)
+                            {
+                                certParagraphs.Add(paragraph);
+                                continue;
+                            }
+                            var colonIndex = paragraph.IndexOf(':');
+                            if (colonIndex > 0 && colonIndex < 60)
+                            {
+                                var label = paragraph[..(colonIndex + 1)];
+                                var rest = paragraph[(colonIndex + 1)..];
+                                body.AppendChild(LabeledFlowTextParagraph(label, rest));
+                            }
+                            else
+                            {
+                                body.AppendChild(FlowTextParagraph(paragraph));
+                            }
+                        }
+                        if (certParagraphs.Count > 0)
+                        {
+                            var stitched = StitchWrappedCertifications(certParagraphs);
+                            foreach (var cert in stitched)
+                                body.AppendChild(CertificationEntryTable(cert));
+                        }
                         continue;
                     }
 
@@ -148,7 +183,7 @@ internal static class CvDocxRenderer
             new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
         ));
         var orgPara = new Paragraph();
-        orgPara.AppendChild(new ParagraphProperties(new SpacingBetweenLines { Before = "80", After = "0" }));
+        orgPara.AppendChild(new ParagraphProperties(new SpacingBetweenLines { Before = "40", After = "0" }));
         var orgRun = new Run();
         orgRun.AppendChild(new RunProperties(
             new RunFonts { Ascii = FontName, HighAnsi = FontName },
@@ -290,6 +325,205 @@ internal static class CvDocxRenderer
         run.AppendChild(new Text($"• {text}") { Space = SpaceProcessingModeValues.Preserve });
         para.AppendChild(run);
         return para;
+    }
+
+    private static Paragraph LabeledFlowTextParagraph(string label, string rest)
+    {
+        var para = new Paragraph();
+        para.AppendChild(new ParagraphProperties(
+            new SpacingBetweenLines { Before = "0", After = "40" }
+        ));
+        var labelRun = new Run();
+        labelRun.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new Bold(),
+            new FontSize { Val = "20" }
+        ));
+        labelRun.AppendChild(new Text(label) { Space = SpaceProcessingModeValues.Preserve });
+        para.AppendChild(labelRun);
+        var restRun = new Run();
+        restRun.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new FontSize { Val = "20" }
+        ));
+        restRun.AppendChild(new Text(rest) { Space = SpaceProcessingModeValues.Preserve });
+        para.AppendChild(restRun);
+        return para;
+    }
+
+    private static Paragraph CertificationHeadingParagraph(string text)
+    {
+        var para = new Paragraph();
+        para.AppendChild(new ParagraphProperties(
+            new SpacingBetweenLines { Before = "120", After = "40" }
+        ));
+        var run = new Run();
+        run.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new Italic(),
+            new FontSize { Val = "20" }
+        ));
+        run.AppendChild(new Text(text) { Space = SpaceProcessingModeValues.Preserve });
+        para.AppendChild(run);
+        return para;
+    }
+
+    private static Table CertificationEntryTable(string line)
+    {
+        var splitIdx = DocxFindCertificationSplit(line);
+        var nameText = splitIdx >= 0 ? line[..splitIdx].Trim() : line;
+        var sourceText = splitIdx >= 0 ? line[splitIdx..].Trim() : string.Empty;
+
+        var table = new Table();
+        table.AppendChild(new TableProperties(
+            new TableWidth { Width = "10080", Type = TableWidthUnitValues.Dxa },
+            new TableLayout { Type = TableLayoutValues.Fixed },
+            new TableBorders(
+                new TopBorder { Val = BorderValues.None },
+                new LeftBorder { Val = BorderValues.None },
+                new BottomBorder { Val = BorderValues.None },
+                new RightBorder { Val = BorderValues.None },
+                new InsideHorizontalBorder { Val = BorderValues.None },
+                new InsideVerticalBorder { Val = BorderValues.None }
+            )
+        ));
+
+        var row = new TableRow();
+
+        var nameCell = new TableCell();
+        nameCell.AppendChild(new TableCellProperties(
+            new TableCellWidth { Width = "7560", Type = TableWidthUnitValues.Dxa },
+            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+        ));
+        var namePara = new Paragraph();
+        namePara.AppendChild(new ParagraphProperties(new SpacingBetweenLines { Before = "40", After = "0" }));
+        var nameRun = new Run();
+        nameRun.AppendChild(new RunProperties(
+            new RunFonts { Ascii = FontName, HighAnsi = FontName },
+            new Bold(),
+            new FontSize { Val = "20" }
+        ));
+        nameRun.AppendChild(new Text(nameText) { Space = SpaceProcessingModeValues.Preserve });
+        namePara.AppendChild(nameRun);
+        nameCell.AppendChild(namePara);
+
+        var sourceCell = new TableCell();
+        sourceCell.AppendChild(new TableCellProperties(
+            new TableCellWidth { Width = "2520", Type = TableWidthUnitValues.Dxa },
+            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+        ));
+        var sourcePara = new Paragraph();
+        sourcePara.AppendChild(new ParagraphProperties(
+            new SpacingBetweenLines { Before = "40", After = "0" },
+            new Justification { Val = JustificationValues.Right }
+        ));
+        if (!string.IsNullOrEmpty(sourceText))
+        {
+            var sourceRun = new Run();
+            sourceRun.AppendChild(new RunProperties(
+                new RunFonts { Ascii = FontName, HighAnsi = FontName },
+                new Italic(),
+                new FontSize { Val = "20" }
+            ));
+            sourceRun.AppendChild(new Text(sourceText) { Space = SpaceProcessingModeValues.Preserve });
+            sourcePara.AppendChild(sourceRun);
+        }
+        sourceCell.AppendChild(sourcePara);
+
+        row.AppendChild(nameCell);
+        row.AppendChild(sourceCell);
+        table.AppendChild(row);
+
+        return table;
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex DocxCertSplitPattern =
+        new(@"\s(?=[A-Z][a-z]+(?:,|\s)).*\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex DocxCertEndsWithYearPattern =
+        new(@"\d{4}\)?$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex DocxCertNextContainsYearPattern =
+        new(@"\d{4}\b", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static int DocxFindCertificationSplit(string line)
+    {
+        var multiSpace = line.IndexOf("  ");
+        if (multiSpace > 0) return multiSpace;
+
+        var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length < 6) return -1;
+
+        var charPositions = new int[words.Length];
+        var pos = 0;
+        for (var i = 0; i < words.Length; i++)
+        {
+            charPositions[i] = pos;
+            pos += words[i].Length + 1;
+        }
+
+        var firstSignalIndex = -1;
+        for (var i = 0; i < words.Length; i++)
+        {
+            var word = words[i];
+            if (word.Contains(',') || word.Contains('(') || System.Text.RegularExpressions.Regex.IsMatch(word, "^\\d{4}"))
+            {
+                firstSignalIndex = i;
+                break;
+            }
+        }
+
+        if (firstSignalIndex < 3) return -1;
+
+        var splitIndex = firstSignalIndex;
+        while (splitIndex > 3
+               && words[splitIndex - 1].Length > 0
+               && char.IsUpper(words[splitIndex - 1][0])
+               && !words[splitIndex - 1].Contains(',')
+               && !words[splitIndex - 1].Contains('('))
+        {
+            splitIndex--;
+        }
+
+        return charPositions[splitIndex] - 1;
+    }
+
+    private static List<string> StitchWrappedCertifications(List<string> paragraphs)
+    {
+        var result = new List<string>();
+        var i = 0;
+        while (i < paragraphs.Count)
+        {
+            var current = paragraphs[i];
+            while (i + 1 < paragraphs.Count && IsCertificationContinuation(current, paragraphs[i + 1]))
+            {
+                current = current.TrimEnd() + " " + paragraphs[i + 1].TrimStart();
+                i++;
+            }
+            result.Add(current);
+            i++;
+        }
+        return result;
+    }
+
+    private static bool IsCertificationContinuation(string current, string next)
+    {
+        if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(next))
+            return false;
+
+        var trimmed = current.TrimEnd();
+        var endsWithComma = trimmed.EndsWith(',');
+        var endsWithYear = DocxCertEndsWithYearPattern.IsMatch(trimmed);
+        var endsWithTerminal = trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?');
+
+        if (endsWithYear || endsWithTerminal) return false;
+        if (endsWithComma) return true;
+
+        var nextLooksLikeContinuation =
+            next.Length < 50 ||
+            DocxCertNextContainsYearPattern.IsMatch(next);
+
+        return nextLooksLikeContinuation;
     }
 
     private static Paragraph FlowTextParagraph(string text)
