@@ -451,10 +451,41 @@ internal static class CvDocxRenderer
         var multiSpace = line.IndexOf("  ");
         if (multiSpace > 0) return multiSpace;
 
-        var match = DocxCertSplitPattern.Match(line);
-        if (match.Success) return match.Index;
+        var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length < 6) return -1;
 
-        return -1;
+        var charPositions = new int[words.Length];
+        var pos = 0;
+        for (var i = 0; i < words.Length; i++)
+        {
+            charPositions[i] = pos;
+            pos += words[i].Length + 1;
+        }
+
+        var firstSignalIndex = -1;
+        for (var i = 0; i < words.Length; i++)
+        {
+            var word = words[i];
+            if (word.Contains(',') || word.Contains('(') || System.Text.RegularExpressions.Regex.IsMatch(word, "^\\d{4}"))
+            {
+                firstSignalIndex = i;
+                break;
+            }
+        }
+
+        if (firstSignalIndex < 3) return -1;
+
+        var splitIndex = firstSignalIndex;
+        while (splitIndex > 3
+               && words[splitIndex - 1].Length > 0
+               && char.IsUpper(words[splitIndex - 1][0])
+               && !words[splitIndex - 1].Contains(',')
+               && !words[splitIndex - 1].Contains('('))
+        {
+            splitIndex--;
+        }
+
+        return charPositions[splitIndex] - 1;
     }
 
     private static List<string> StitchWrappedCertifications(List<string> paragraphs)
